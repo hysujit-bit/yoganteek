@@ -1,0 +1,12 @@
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp
