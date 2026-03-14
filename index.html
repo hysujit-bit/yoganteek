@@ -107,12 +107,21 @@ footer{background:var(--cream);padding:40px 24px;text-align:center;border-top:1p
 .home-hero h1 { font-family:var(--font-heading); font-size:clamp(42px,6vw,80px); font-weight:600; line-height:1.15; color:#3D224F; margin-bottom:28px; letter-spacing:-.5px; }
 .home-hero h1 em { color:#D4A637; font-style:normal; font-weight:700; }
 .hero-sub { font-size:clamp(15px,1.8vw,19px); font-weight:400; color:#5A3569; line-height:1.75; margin-bottom:42px; letter-spacing:.2px; max-width:540px; }
-.mandala-decor { position:absolute; width:600px; height:600px; right:-150px; top:50%; transform:translateY(-50%); opacity:.15; animation:mandala-rotate 60s linear infinite; pointer-events:none; }
-.mandala-circle { position:absolute; border-radius:50%; }
-.mandala-decor .circle-1 { width:100%; height:100%; border:3px solid #6E3C7B; }
-.mandala-decor .circle-2 { width:75%; height:75%; top:12.5%; left:12.5%; border:2px solid #C7A3D3; }
-.mandala-decor .circle-3 { width:50%; height:50%; top:25%; left:25%; border:2px solid #D4A637; }
-@keyframes mandala-rotate { from{transform:translateY(-50%) rotate(0deg)} to{transform:translateY(-50%) rotate(360deg)} }
+/* Yoga Lotus Hero Animation */
+.hero-yoga-lotus { position:absolute; width:520px; height:520px; right:-80px; top:50%; transform:translateY(-50%); pointer-events:none; }
+.hero-yoga-lotus svg { width:100%; height:100%; overflow:visible; }
+.lotus-petal { transition: filter 0.3s; }
+.yoga-fig { transition: opacity 0.5s ease; }
+.chakra { animation: chakra-pulse 2s ease-in-out infinite; }
+.chakra:nth-child(1) { animation-delay:0s; }
+.chakra:nth-child(2) { animation-delay:0.28s; }
+.chakra:nth-child(3) { animation-delay:0.56s; }
+.chakra:nth-child(4) { animation-delay:0.84s; }
+.chakra:nth-child(5) { animation-delay:1.12s; }
+.chakra:nth-child(6) { animation-delay:1.40s; }
+.chakra:nth-child(7) { animation-delay:1.68s; }
+@keyframes chakra-pulse { 0%,100%{r:4;opacity:0.7} 50%{r:6;opacity:1} }
+@keyframes crown-glow { 0%,100%{opacity:0.5;r:10} 50%{opacity:1;r:14} }
 @keyframes fadeInUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
 
 
@@ -249,11 +258,138 @@ footer{background:var(--cream);padding:40px 24px;text-align:center;border-top:1p
         <a href="https://calendly.com/jspyoga1986/30min" target="_blank" class="btn-primary">Book An Appointment &rarr;</a>
     </div>
     </div>
-    <div class="mandala-decor">
-        <div class="mandala-circle circle-1"></div>
-        <div class="mandala-circle circle-2"></div>
-        <div class="mandala-circle circle-3"></div>
-    </div>
+    <div class="hero-yoga-lotus">
+    <svg id="yogaLotus" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="lotusCenter" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="rgba(200,155,60,0.3)"/>
+          <stop offset="100%" stop-color="rgba(200,155,60,0)"/>
+        </radialGradient>
+        <filter id="figGlow" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="2.5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="petalGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="4" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- Soft ambient background -->
+      <circle cx="250" cy="250" r="230" fill="url(#lotusCenter)" opacity="0.4"/>
+
+      <!-- 8 LOTUS PETALS (rotate as a group via JS) -->
+      <g id="lotusGroup">
+        <ellipse class="lotus-petal" id="lp0" cx="250" cy="95" rx="44" ry="78" fill="rgba(168,140,200,0.65)" transform="rotate(0,250,250)"/>
+        <ellipse class="lotus-petal" id="lp1" cx="250" cy="95" rx="44" ry="78" fill="rgba(168,140,200,0.65)" transform="rotate(45,250,250)"/>
+        <ellipse class="lotus-petal" id="lp2" cx="250" cy="95" rx="44" ry="78" fill="rgba(168,140,200,0.65)" transform="rotate(90,250,250)"/>
+        <ellipse class="lotus-petal" id="lp3" cx="250" cy="95" rx="44" ry="78" fill="rgba(168,140,200,0.65)" transform="rotate(135,250,250)"/>
+        <ellipse class="lotus-petal" id="lp4" cx="250" cy="95" rx="44" ry="78" fill="rgba(168,140,200,0.65)" transform="rotate(180,250,250)"/>
+        <ellipse class="lotus-petal" id="lp5" cx="250" cy="95" rx="44" ry="78" fill="rgba(168,140,200,0.65)" transform="rotate(225,250,250)"/>
+        <ellipse class="lotus-petal" id="lp6" cx="250" cy="95" rx="44" ry="78" fill="rgba(168,140,200,0.65)" transform="rotate(270,250,250)"/>
+        <ellipse class="lotus-petal" id="lp7" cx="250" cy="95" rx="44" ry="78" fill="rgba(168,140,200,0.65)" transform="rotate(315,250,250)"/>
+      </g>
+
+      <!-- YOGA FIGURES (positioned in screen space via JS) -->
+        <g id="yf0" class="yoga-fig" opacity="0" filter="url(#figGlow)"><circle cx="0" cy="-34" r="7" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-27" x2="0" y2="2" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-18" x2="-16" y2="-6" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-18" x2="16" y2="-6" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="2" x2="0" y2="28" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <path d="M0,12 Q-8,20 -16,16" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+        <g id="yf1" class="yoga-fig" opacity="0" filter="url(#figGlow)"><circle cx="0" cy="-34" r="7" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-27" x2="0" y2="2" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="-26" y1="-14" x2="26" y2="-14" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="2" x2="-20" y2="28" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="2" x2="12" y2="16" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="12" y1="16" x2="18" y2="28" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+        <g id="yf2" class="yoga-fig" opacity="0" filter="url(#figGlow)"><circle cx="10" cy="-30" r="7" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="10" y1="-23" x2="-2" y2="4" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="-2" y1="4" x2="-22" y2="26" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="-2" y1="4" x2="18" y2="24" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="-22" y1="26" x2="18" y2="24" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-4" x2="-14" y2="16" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="14" y1="-20" x2="24" y2="-8" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+        <g id="yf3" class="yoga-fig" opacity="0" filter="url(#figGlow)"><circle cx="-2" cy="10" r="7" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="-2" y1="3" x2="-16" y2="-20" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="-16" y1="-20" x2="-28" y2="-10" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="-16" y1="-20" x2="14" y2="-20" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="14" y1="-20" x2="26" y2="-10" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="-2" y1="3" x2="-14" y2="26" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="-2" y1="3" x2="12" y2="26" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+        <g id="yf4" class="yoga-fig" opacity="0" filter="url(#figGlow)"><circle cx="0" cy="-26" r="7" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <path d="M0,-19 C0,-10 2,2 0,14" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-6" x2="-18" y2="6" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-6" x2="18" y2="6" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="-18" y1="6" x2="-20" y2="18" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="18" y1="6" x2="20" y2="18" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="14" x2="-10" y2="28" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="14" x2="10" y2="28" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+        <g id="yf5" class="yoga-fig" opacity="0" filter="url(#figGlow)"><circle cx="0" cy="-30" r="7" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-23" x2="0" y2="-2" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-14" x2="-16" y2="-4" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-14" x2="16" y2="-4" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <path d="M-22,18 Q-10,8 0,12 Q10,8 22,18" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-2" x2="-20" y2="18" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-2" x2="20" y2="18" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="-16" y1="-4" x2="-22" y2="18" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="16" y1="-4" x2="22" y2="18" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+        <g id="yf6" class="yoga-fig" opacity="0" filter="url(#figGlow)"><circle cx="-12" cy="-12" r="7" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <path d="M-12,-5 C-6,4 2,12 10,16" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="10" y1="16" x2="-8" y2="22" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="-8" y1="22" x2="-10" y2="28" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="10" y1="16" x2="14" y2="24" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="-12" y1="-5" x2="-28" y2="-16" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="-28" y1="-16" x2="-30" y2="-4" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+        <g id="yf7" class="yoga-fig" opacity="0" filter="url(#figGlow)"><circle cx="0" cy="-34" r="7" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-27" x2="0" y2="-2" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-20" x2="-14" y2="-32" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-20" x2="14" y2="-32" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-2" x2="-14" y2="14" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="-14" y1="14" x2="-18" y2="28" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="0" y1="-2" x2="14" y2="14" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <line x1="14" y1="14" x2="18" y2="28" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+
+      <!-- CENTER MEDITATION + CHAKRAS -->
+  <!-- Center gold disc -->
+  <circle cx="250" cy="250" r="84" fill="rgba(200,155,60,0.22)"/>
+  <circle cx="250" cy="250" r="76" fill="rgba(250,247,242,0.97)"/>
+
+  <!-- Crown glow -->
+  <circle cx="250" cy="194" r="10" fill="rgba(155,89,182,0.35)" style="animation:crown-glow 2s ease-in-out infinite"/>
+
+  <!-- Meditation figure (seated namaste, centered at 250,250) -->
+  <!-- Head -->
+  <circle cx="250" cy="209" r="8" stroke="#6B5B8A" stroke-width="1.8" fill="rgba(107,91,138,0.1)"/>
+  <!-- Hair bun -->
+  <path d="M244,204 Q250,198 256,204" stroke="#6B5B8A" stroke-width="1.5" fill="none"/>
+  <!-- Neck -->
+  <line x1="250" y1="217" x2="250" y2="221" stroke="#6B5B8A" stroke-width="1.8"/>
+  <!-- Torso -->
+  <line x1="250" y1="221" x2="250" y2="248" stroke="#6B5B8A" stroke-width="1.8"/>
+  <!-- Folded hands (Namaste) — diamond shape at chest -->
+  <path d="M242,231 L250,225 L258,231 L250,238 Z" stroke="#C89B3C" stroke-width="1.5" fill="rgba(200,155,60,0.15)"/>
+  <!-- Left arm to namaste -->
+  <path d="M250,228 Q244,230 242,231" stroke="#6B5B8A" stroke-width="1.5" fill="none"/>
+  <!-- Right arm to namaste -->
+  <path d="M250,228 Q256,230 258,231" stroke="#6B5B8A" stroke-width="1.5" fill="none"/>
+  <!-- Crossed legs (lotus) -->
+  <path d="M236,268 Q226,260 222,252 Q228,248 250,248 Q272,248 278,252 Q274,260 264,268 Z" stroke="#6B5B8A" stroke-width="1.5" fill="rgba(107,91,138,0.08)"/>
+  <!-- Left foot -->
+  <path d="M236,268 Q232,270 228,266" stroke="#6B5B8A" stroke-width="1.5" fill="none"/>
+  <!-- Right foot -->
+  <path d="M264,268 Q268,270 272,266" stroke="#6B5B8A" stroke-width="1.5" fill="none"/>
+
+  <!-- 7 Chakras (along spine, bottom to top of body) -->
+  <circle class="chakra" cx="250" cy="268" r="4" fill="#E74C3C" opacity="0.85"/>
+  <circle class="chakra" cx="250" cy="258" r="4" fill="#F39C12" opacity="0.85"/>
+  <circle class="chakra" cx="250" cy="248" r="4.5" fill="#F4D03F" opacity="0.85"/>
+  <circle class="chakra" cx="250" cy="237" r="5" fill="#58D68D" opacity="0.9"/>
+  <circle class="chakra" cx="250" cy="226" r="4" fill="#5DADE2" opacity="0.85"/>
+  <circle class="chakra" cx="250" cy="217" r="4" fill="#8B5CF6" opacity="0.85"/>
+  <circle class="chakra" cx="250" cy="204" r="5" fill="#9B59B6" opacity="0.9"/>
+    </svg>
+</div>
 </section>
 
 <!-- WELLNESS COACHING -->
@@ -426,6 +562,68 @@ document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',
         idx = (idx + 1) % phrases.length;
         rotateTo(idx);
     }, 2800);
+})();
+</script>
+
+<script>
+(function(){
+    var PETALS = 8;
+    var RADIUS = 155; // px from center (250,250) to petal center
+    var CX = 250, CY = 250;
+    var SPEED = 0.4; // degrees per 16ms frame (~1 rev / 15s)
+    var angle = 0;
+
+    var lotusGroup = document.getElementById('lotusGroup');
+    var yogaFigs = Array.from({length:8}, function(_,i){ return document.getElementById('yf'+i); });
+    var petals   = Array.from({length:8}, function(_,i){ return document.getElementById('lp'+i); });
+
+    var poseNames = ['Tree','Warrior II','Triangle','Downdog','Cobra','Seated Lotus','Child','Chair'];
+
+    function deg2rad(d){ return d * Math.PI / 180; }
+
+    function update(){
+        angle = (angle + SPEED) % 360;
+
+        // Rotate lotus petal group
+        lotusGroup.setAttribute('transform', 'rotate('+angle+','+CX+','+CY+')');
+
+        // Position each yoga figure and set opacity
+        yogaFigs.forEach(function(fig, i){
+            // Absolute angle of this petal in screen space
+            var absAngle = (i * 45 + angle) % 360;
+
+            // Screen position (0° = top, clockwise)
+            var rad = deg2rad(absAngle);
+            var fx = CX + RADIUS * Math.sin(rad);
+            var fy = CY - RADIUS * Math.cos(rad);
+
+            fig.setAttribute('transform', 'translate('+fx.toFixed(1)+','+fy.toFixed(1)+')');
+
+            // Opacity: full when petal is at "front" (bottom = 180°)
+            var dist = Math.abs(absAngle - 180);
+            if(dist > 180) dist = 360 - dist;
+
+            var opacity;
+            if(dist < 30)       opacity = 0.95;
+            else if(dist < 70)  opacity = 0.95 - (dist-30)/40 * 0.75;
+            else                opacity = 0.2;
+
+            fig.style.opacity = opacity;
+
+            // Petal highlight: front petal is brighter
+            if(dist < 40){
+                petals[i].setAttribute('fill','rgba(192,168,220,0.9)');
+                petals[i].setAttribute('filter','url(#petalGlow)');
+            } else {
+                petals[i].setAttribute('fill','rgba(150,120,180,0.55)');
+                petals[i].removeAttribute('filter');
+            }
+        });
+
+        requestAnimationFrame(update);
+    }
+
+    requestAnimationFrame(update);
 })();
 </script>
 </body>
