@@ -101,15 +101,15 @@ footer{background:var(--cream);padding:40px 24px;text-align:center;border-top:1p
 
     /* HOME HERO */
     .home-hero { min-height:90vh; display:flex; align-items:center; padding-top:130px; padding-bottom:80px; background:linear-gradient(135deg,#C7A3D3 0%,#F8F2E8 50%,#FFF9E6 100%); position:relative; overflow:hidden; }
-.home-hero-wrap { max-width:1200px; margin:0 auto; padding:0 40px; width:100%; }
-.home-hero-inner { max-width:660px; z-index:10; animation:fadeInUp 1.2s ease-out; }
+.home-hero-wrap { max-width:1200px; margin:0 auto; padding:0 40px; width:100%; display:grid; grid-template-columns:1fr 1fr; align-items:center; gap:40px; }
+.home-hero-inner { max-width:100%; z-index:10; animation:fadeInUp 1.2s ease-out; }
 .home-hero .kicker { font-family:var(--font-body); font-size:.75rem; letter-spacing:3px; text-transform:uppercase; color:#6E3C7B; margin-bottom:20px; font-weight:600; }
 .home-hero h1 { font-family:var(--font-heading); font-size:clamp(42px,6vw,80px); font-weight:600; line-height:1.15; color:#3D224F; margin-bottom:28px; letter-spacing:-.5px; }
 .home-hero h1 em { color:#D4A637; font-style:normal; font-weight:700; }
 .hero-sub { font-size:clamp(15px,1.8vw,19px); font-weight:400; color:#5A3569; line-height:1.75; margin-bottom:42px; letter-spacing:.2px; max-width:540px; }
 /* Yoga Lotus Hero Animation */
-.hero-yoga-lotus { position:absolute; width:520px; height:520px; right:-80px; top:50%; transform:translateY(-50%); pointer-events:none; }
-.hero-yoga-lotus svg { width:100%; height:100%; overflow:visible; }
+.hero-yoga-lotus { position:relative; width:100%; height:520px; display:flex; align-items:center; justify-content:center; pointer-events:none; }
+.hero-yoga-lotus svg { width:100%; height:100%; max-height:500px; overflow:visible; }
 .lotus-petal { transition: filter 0.3s; }
 .yoga-fig { transition: opacity 0.5s ease; }
 .chakra { animation: chakra-pulse 2s ease-in-out infinite; }
@@ -121,6 +121,9 @@ footer{background:var(--cream);padding:40px 24px;text-align:center;border-top:1p
 .chakra:nth-child(6) { animation-delay:1.40s; }
 .chakra:nth-child(7) { animation-delay:1.68s; }
 @keyframes chakra-pulse { 0%,100%{r:4;opacity:0.7} 50%{r:6;opacity:1} }
+@keyframes pg-spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+@keyframes pg-rev { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+@keyframes lotus-gentle { 0%,100%{transform:translateY(0px) scale(1)} 50%{transform:translateY(-12px) scale(1.02)} }
 @keyframes crown-glow { 0%,100%{opacity:0.5;r:10} 50%{opacity:1;r:14} }
 @keyframes fadeInUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
 
@@ -164,7 +167,7 @@ footer{background:var(--cream);padding:40px 24px;text-align:center;border-top:1p
 @keyframes spin-rev{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
 @keyframes breathe{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.06);opacity:1}}
 @keyframes pulse-glow{0%,100%{opacity:.5}50%{opacity:1}}
-@media(max-width:900px){.hero-lotus{display:none !important;}.home-hero-inner{grid-template-columns:1fr !important;}}
+@media(max-width:900px){.hero-yoga-lotus{display:none !important;}.home-hero-wrap{grid-template-columns:1fr !important;}}
 
 /* Rotating hero text */
 .hero-rotating-wrap {
@@ -257,249 +260,136 @@ footer{background:var(--cream);padding:40px 24px;text-align:center;border-top:1p
         <p class="hero-sub">Experience the transformative power of yoga and holistic wellness. Begin your journey to inner peace, physical vitality, and spiritual harmony with Dr. Jayashree Pattanayak.</p>
         <a href="https://calendly.com/jspyoga1986/30min" target="_blank" class="btn-primary">Book An Appointment &rarr;</a>
     </div>
-    </div>
     <div class="hero-yoga-lotus">
-    <svg id="yogaLotus" viewBox="0 0 550 550" xmlns="http://www.w3.org/2000/svg" style="animation:lotus-gentle 8s ease-in-out infinite">
-      <defs>
-        <filter id="petalShadow" x="-15%" y="-15%" width="130%" height="130%">
-          <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="rgba(60,40,90,0.35)"/>
-        </filter>
-        <radialGradient id="bgFade" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="rgba(200,155,60,0.12)"/>
-          <stop offset="100%" stop-color="rgba(200,155,60,0)"/>
-        </radialGradient>
-      </defs>
+<svg id="yogaMandala" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;max-height:500px">
+  <defs>
+    <radialGradient id="pgOuter" cx="50%" cy="15%" r="85%" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#9B7BB8"/>
+      <stop offset="100%" stop-color="#3E2E58"/>
+    </radialGradient>
+    <radialGradient id="pgInner" cx="50%" cy="15%" r="85%">
+      <stop offset="0%" stop-color="#D4A845" stop-opacity="0.92"/>
+      <stop offset="100%" stop-color="#8A6018" stop-opacity="0.72"/>
+    </radialGradient>
+    <radialGradient id="pgCenter" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#F2C84B"/>
+      <stop offset="70%" stop-color="#C89B3C"/>
+      <stop offset="100%" stop-color="#9A7620"/>
+    </radialGradient>
+    <radialGradient id="pgMid" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#5A4878"/>
+      <stop offset="100%" stop-color="#3D2D55"/>
+    </radialGradient>
+    <radialGradient id="pgAmbient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="rgba(107,91,138,0.2)"/>
+      <stop offset="100%" stop-color="rgba(107,91,138,0)"/>
+    </radialGradient>
+    <filter id="pgGlow" x="-15%" y="-15%" width="130%" height="130%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="pgCenterGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
 
-      <!-- Ambient glow background -->
-      <circle cx="275" cy="275" r="260" fill="url(#bgFade)"/>
+  <!-- Ambient background -->
+  <circle cx="250" cy="250" r="248" fill="url(#pgAmbient)"/>
 
-      <!-- 8 PETAL PANELS (with drop shadow) -->
-      <g filter="url(#petalShadow)">
-  <!-- Petal 0: Hatha Yoga -->
-  <g transform="rotate(0,275,275)">
-    <g transform="translate(275,93)">
-      <!-- Petal backing (darker outer) -->
-      <path d="M0,-52 Q-38,-52 -40,-22 L-40,18 Q-38,38 -20,46 L-6,54 Q0,58 6,54 L20,46 Q38,38 40,18 L40,-22 Q38,-52 0,-52 Z" fill="#5A4870" opacity="0.85"/>
-      <!-- Petal inner lighter -->
-      <path d="M0,-44 Q-32,-44 -34,-18 L-34,14 Q-32,32 -16,40 L-5,46 Q0,50 5,46 L16,40 Q32,32 34,14 L34,-18 Q32,-44 0,-44 Z" fill="#7B6B9A" opacity="0.9"/>
-      <!-- Yoga figure -->
-      <g fill="rgba(255,255,255,0.95)">
-    <circle cx="0" cy="-42" r="5.5"/>
-    <ellipse cx="1" cy="-48" rx="3" ry="2"/>
-    <path d="M-6,-36 Q-9,-24 -7,2 Q0,5 7,2 Q9,-24 6,-36 Q3,-38 0,-38 Q-3,-38 -6,-36Z"/>
-    <path d="M-6,-26 Q-13,-18 -8,0 Q-6,0 -4,-6 Q-5,-14 -3,-22Z"/>
-    <path d="M6,-26 Q13,-18 8,0 Q6,0 4,-6 Q5,-14 3,-22Z"/>
-    <path d="M-3,-26 Q-1,-32 0,-34 Q1,-32 3,-26 Q2,-24 0,-24 Q-2,-24 -3,-26Z"/>
-    <path d="M-3,2 Q-5,12 -4,22 Q0,25 4,22 Q5,12 3,2Z"/>
-    <path d="M2,2 Q7,7 9,14 Q7,16 5,14 Q3,10 2,6Z"/>
+  <!-- OUTER RING GROUP (slow rotation) -->
+  <g style="transform-origin:250px 250px;animation:pg-spin 90s linear infinite">
+    <circle cx="250" cy="250" r="234" fill="none" stroke="#C89B3C" stroke-width="1.2" opacity="0.5"/>
+    <circle cx="250" cy="250" r="228" fill="none" stroke="#C89B3C" stroke-width="0.5" opacity="0.25"/>
+    <!-- 16 tick marks -->
+    <g stroke="#C89B3C" stroke-width="1" opacity="0.45">
+      <line x1="250" y1="16" x2="250" y2="24" transform="rotate(0,250,250)"/>
+      <line x1="250" y1="16" x2="250" y2="24" transform="rotate(22.5,250,250)"/>
+      <line x1="250" y1="16" x2="250" y2="24" transform="rotate(45,250,250)"/>
+      <line x1="250" y1="16" x2="250" y2="24" transform="rotate(67.5,250,250)"/>
+      <line x1="250" y1="16" x2="250" y2="24" transform="rotate(90,250,250)"/>
+      <line x1="250" y1="16" x2="250" y2="24" transform="rotate(112.5,250,250)"/>
+      <line x1="250" y1="16" x2="250" y2="24" transform="rotate(135,250,250)"/>
+      <line x1="250" y1="16" x2="250" y2="24" transform="rotate(157.5,250,250)"/>
+      <line x1="250" y1="16" x2="250" y2="24" transform="rotate(180,250,250)"/>
+      <line x1="250" y1="16" x2="250" y2="24" transform="rotate(202.5,250,250)"/>
+      <line x1="250" y1="16" x2="250" y2="24" transform="rotate(225,250,250)"/>
+      <line x1="250" y1="16" x2="250" y2="24" transform="rotate(247.5,250,250)"/>
+      <line x1="250" y1="16" x2="250" y2="24" transform="rotate(270,250,250)"/>
+      <line x1="250" y1="16" x2="250" y2="24" transform="rotate(292.5,250,250)"/>
+      <line x1="250" y1="16" x2="250" y2="24" transform="rotate(315,250,250)"/>
+      <line x1="250" y1="16" x2="250" y2="24" transform="rotate(337.5,250,250)"/>
+    </g>
+    <!-- 8 diamond accent points -->
+    <g fill="#C89B3C" opacity="0.62">
+      <polygon points="250,11 253,17 250,23 247,17" transform="rotate(0,250,250)"/>
+      <polygon points="250,11 253,17 250,23 247,17" transform="rotate(45,250,250)"/>
+      <polygon points="250,11 253,17 250,23 247,17" transform="rotate(90,250,250)"/>
+      <polygon points="250,11 253,17 250,23 247,17" transform="rotate(135,250,250)"/>
+      <polygon points="250,11 253,17 250,23 247,17" transform="rotate(180,250,250)"/>
+      <polygon points="250,11 253,17 250,23 247,17" transform="rotate(225,250,250)"/>
+      <polygon points="250,11 253,17 250,23 247,17" transform="rotate(270,250,250)"/>
+      <polygon points="250,11 253,17 250,23 247,17" transform="rotate(315,250,250)"/>
+    </g>
+    <!-- 8 outer lotus petals -->
+    <g filter="url(#pgGlow)" opacity="0.93">
+      <g transform="translate(250,250) rotate(0)"><path d="M0,-216 C-36,-172 -38,-130 0,-104 C38,-130 36,-172 0,-216Z" fill="url(#pgOuter)"/><path d="M0,-204 C-22,-168 -22,-132 0,-114 C22,-132 22,-168 0,-204Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.3"/></g>
+      <g transform="translate(250,250) rotate(45)"><path d="M0,-216 C-36,-172 -38,-130 0,-104 C38,-130 36,-172 0,-216Z" fill="url(#pgOuter)"/><path d="M0,-204 C-22,-168 -22,-132 0,-114 C22,-132 22,-168 0,-204Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.3"/></g>
+      <g transform="translate(250,250) rotate(90)"><path d="M0,-216 C-36,-172 -38,-130 0,-104 C38,-130 36,-172 0,-216Z" fill="url(#pgOuter)"/><path d="M0,-204 C-22,-168 -22,-132 0,-114 C22,-132 22,-168 0,-204Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.3"/></g>
+      <g transform="translate(250,250) rotate(135)"><path d="M0,-216 C-36,-172 -38,-130 0,-104 C38,-130 36,-172 0,-216Z" fill="url(#pgOuter)"/><path d="M0,-204 C-22,-168 -22,-132 0,-114 C22,-132 22,-168 0,-204Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.3"/></g>
+      <g transform="translate(250,250) rotate(180)"><path d="M0,-216 C-36,-172 -38,-130 0,-104 C38,-130 36,-172 0,-216Z" fill="url(#pgOuter)"/><path d="M0,-204 C-22,-168 -22,-132 0,-114 C22,-132 22,-168 0,-204Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.3"/></g>
+      <g transform="translate(250,250) rotate(225)"><path d="M0,-216 C-36,-172 -38,-130 0,-104 C38,-130 36,-172 0,-216Z" fill="url(#pgOuter)"/><path d="M0,-204 C-22,-168 -22,-132 0,-114 C22,-132 22,-168 0,-204Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.3"/></g>
+      <g transform="translate(250,250) rotate(270)"><path d="M0,-216 C-36,-172 -38,-130 0,-104 C38,-130 36,-172 0,-216Z" fill="url(#pgOuter)"/><path d="M0,-204 C-22,-168 -22,-132 0,-114 C22,-132 22,-168 0,-204Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.3"/></g>
+      <g transform="translate(250,250) rotate(315)"><path d="M0,-216 C-36,-172 -38,-130 0,-104 C38,-130 36,-172 0,-216Z" fill="url(#pgOuter)"/><path d="M0,-204 C-22,-168 -22,-132 0,-114 C22,-132 22,-168 0,-204Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.3"/></g>
+    </g>
+    <circle cx="250" cy="250" r="102" fill="none" stroke="rgba(200,155,60,0.32)" stroke-width="1.2"/>
   </g>
-      <!-- Label -->
-      <text x="0" y="32" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9.5" font-weight="600" fill="rgba(255,255,255,0.95)" opacity="0.95">Hatha Yoga</text>
+
+  <!-- INNER MIDDLE RING (fixed) -->
+  <circle cx="250" cy="250" r="106" fill="url(#pgMid)" stroke="#7A5FA0" stroke-width="1.8" opacity="0.88"/>
+
+  <!-- INNER PETALS (counter-rotation) -->
+  <g style="transform-origin:250px 250px;animation:pg-rev 60s linear infinite">
+    <g opacity="0.9">
+      <g transform="translate(250,250) rotate(22.5)"><path d="M0,-100 C-15,-88 -15,-70 0,-62 C15,-70 15,-88 0,-100Z" fill="url(#pgInner)"/></g>
+      <g transform="translate(250,250) rotate(67.5)"><path d="M0,-100 C-15,-88 -15,-70 0,-62 C15,-70 15,-88 0,-100Z" fill="url(#pgInner)"/></g>
+      <g transform="translate(250,250) rotate(112.5)"><path d="M0,-100 C-15,-88 -15,-70 0,-62 C15,-70 15,-88 0,-100Z" fill="url(#pgInner)"/></g>
+      <g transform="translate(250,250) rotate(157.5)"><path d="M0,-100 C-15,-88 -15,-70 0,-62 C15,-70 15,-88 0,-100Z" fill="url(#pgInner)"/></g>
+      <g transform="translate(250,250) rotate(202.5)"><path d="M0,-100 C-15,-88 -15,-70 0,-62 C15,-70 15,-88 0,-100Z" fill="url(#pgInner)"/></g>
+      <g transform="translate(250,250) rotate(247.5)"><path d="M0,-100 C-15,-88 -15,-70 0,-62 C15,-70 15,-88 0,-100Z" fill="url(#pgInner)"/></g>
+      <g transform="translate(250,250) rotate(292.5)"><path d="M0,-100 C-15,-88 -15,-70 0,-62 C15,-70 15,-88 0,-100Z" fill="url(#pgInner)"/></g>
+      <g transform="translate(250,250) rotate(337.5)"><path d="M0,-100 C-15,-88 -15,-70 0,-62 C15,-70 15,-88 0,-100Z" fill="url(#pgInner)"/></g>
+    </g>
+    <!-- 8 gold dots between inner petals -->
+    <g fill="#C89B3C" opacity="0.55">
+      <circle cx="250" cy="156" r="2.2" transform="rotate(0,250,250)"/>
+      <circle cx="250" cy="156" r="2.2" transform="rotate(45,250,250)"/>
+      <circle cx="250" cy="156" r="2.2" transform="rotate(90,250,250)"/>
+      <circle cx="250" cy="156" r="2.2" transform="rotate(135,250,250)"/>
+      <circle cx="250" cy="156" r="2.2" transform="rotate(180,250,250)"/>
+      <circle cx="250" cy="156" r="2.2" transform="rotate(225,250,250)"/>
+      <circle cx="250" cy="156" r="2.2" transform="rotate(270,250,250)"/>
+      <circle cx="250" cy="156" r="2.2" transform="rotate(315,250,250)"/>
     </g>
   </g>
-  <!-- Petal 1: Kundalini Yoga -->
-  <g transform="rotate(45,275,275)">
-    <g transform="translate(275,93)">
-      <!-- Petal backing (darker outer) -->
-      <path d="M0,-52 Q-38,-52 -40,-22 L-40,18 Q-38,38 -20,46 L-6,54 Q0,58 6,54 L20,46 Q38,38 40,18 L40,-22 Q38,-52 0,-52 Z" fill="#5A4870" opacity="0.85"/>
-      <!-- Petal inner lighter -->
-      <path d="M0,-44 Q-32,-44 -34,-18 L-34,14 Q-32,32 -16,40 L-5,46 Q0,50 5,46 L16,40 Q32,32 34,14 L34,-18 Q32,-44 0,-44 Z" fill="#7B6B9A" opacity="0.9"/>
-      <!-- Yoga figure -->
-      <g fill="rgba(255,255,255,0.95)">
-    <circle cx="0" cy="-36" r="5.5"/>
-    <ellipse cx="1.5" cy="-42" rx="3" ry="2"/>
-    <path d="M-6,-30 Q-6,-18 0,4 Q6,-18 6,-30 Q3,-32 0,-32 Q-3,-32 -6,-30Z"/>
-    <path d="M-6,-22 Q-13,-12 -14,0 Q-12,4 -9,2 Q-6,-6 -4,-14Z"/>
-    <path d="M6,-22 Q13,-12 14,0 Q12,4 9,2 Q6,-6 4,-14Z"/>
-    <path d="M-4,4 Q-6,12 -8,22 Q-4,24 -2,22 Q0,16 0,8Z"/>
-    <path d="M4,4 Q6,12 8,22 Q4,24 2,22 Q0,16 0,8Z"/>
-  </g>
-      <!-- Label -->
-      <text x="0" y="32" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9.5" font-weight="600" fill="rgba(255,255,255,0.95)" opacity="0.95">Kundalini</text><text x="0" y="45" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9.5" font-weight="600" fill="rgba(255,255,255,0.95)" opacity="0.95">Yoga</text>
-    </g>
-  </g>
-  <!-- Petal 2: Meditation -->
-  <g transform="rotate(90,275,275)">
-    <g transform="translate(275,93)">
-      <!-- Petal backing (darker outer) -->
-      <path d="M0,-52 Q-38,-52 -40,-22 L-40,18 Q-38,38 -20,46 L-6,54 Q0,58 6,54 L20,46 Q38,38 40,18 L40,-22 Q38,-52 0,-52 Z" fill="#5A4870" opacity="0.85"/>
-      <!-- Petal inner lighter -->
-      <path d="M0,-44 Q-32,-44 -34,-18 L-34,14 Q-32,32 -16,40 L-5,46 Q0,50 5,46 L16,40 Q32,32 34,14 L34,-18 Q32,-44 0,-44 Z" fill="#7B6B9A" opacity="0.9"/>
-      <!-- Yoga figure -->
-      <g fill="rgba(255,255,255,0.95)">
-    <circle cx="0" cy="-40" r="5.5"/>
-    <ellipse cx="1.5" cy="-46" rx="3" ry="2"/>
-    <path d="M-6,-34 Q-8,-22 -6,-10 Q0,-6 6,-10 Q8,-22 6,-34 Q3,-36 0,-36 Q-3,-36 -6,-34Z"/>
-    <path d="M-6,-24 Q-12,-20 -14,-12 Q-12,-8 -9,-10 Q-6,-16 -4,-22Z"/>
-    <path d="M6,-24 Q12,-20 14,-12 Q12,-8 9,-10 Q6,-16 4,-22Z"/>
-    <ellipse cx="0" cy="-17" rx="6" ry="4"/>
-    <path d="M-8,-6 Q-16,2 -18,10 Q-14,14 -10,12 Q-4,4 0,-2Z"/>
-    <path d="M8,-6 Q16,2 18,10 Q14,14 10,12 Q4,4 0,-2Z"/>
-    <path d="M-18,10 Q-10,18 0,20 Q10,18 18,10 Q10,6 0,4 Q-10,6 -18,10Z"/>
-  </g>
-      <!-- Label -->
-      <text x="0" y="32" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9.5" font-weight="600" fill="rgba(255,255,255,0.95)" opacity="0.95">Meditation</text>
-    </g>
-  </g>
-  <!-- Petal 3: Pranayama -->
-  <g transform="rotate(135,275,275)">
-    <g transform="translate(275,93)">
-      <!-- Petal backing (darker outer) -->
-      <path d="M0,-52 Q-38,-52 -40,-22 L-40,18 Q-38,38 -20,46 L-6,54 Q0,58 6,54 L20,46 Q38,38 40,18 L40,-22 Q38,-52 0,-52 Z" fill="#5A4870" opacity="0.85"/>
-      <!-- Petal inner lighter -->
-      <path d="M0,-44 Q-32,-44 -34,-18 L-34,14 Q-32,32 -16,40 L-5,46 Q0,50 5,46 L16,40 Q32,32 34,14 L34,-18 Q32,-44 0,-44 Z" fill="#7B6B9A" opacity="0.9"/>
-      <!-- Yoga figure -->
-      <g fill="rgba(255,255,255,0.95)">
-    <circle cx="0" cy="-44" r="5.5"/>
-    <ellipse cx="1.5" cy="-50" rx="3" ry="2"/>
-    <path d="M-6,-38 Q-8,-26 -6,-14 Q0,-10 6,-14 Q8,-26 6,-38 Q3,-40 0,-40 Q-3,-40 -6,-38Z"/>
-    <path d="M-5,-30 Q-8,-22 -4,-16 Q-2,-18 -2,-24 Q-3,-28 -3,-32Z"/>
-    <path d="M5,-30 Q8,-22 4,-16 Q2,-18 2,-24 Q3,-28 3,-32Z"/>
-    <path d="M-3,-38 Q-1,-44 0,-46 Q1,-44 3,-38 Q1,-36 0,-36 Q-1,-36 -3,-38Z"/>
-    <path d="M-3,-14 Q-8,-4 -10,8 Q-6,12 -4,8 Q-2,2 0,-6Z"/>
-    <path d="M3,-14 Q8,-4 10,8 Q6,12 4,8 Q2,2 0,-6Z"/>
-  </g>
-      <!-- Label -->
-      <text x="0" y="32" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9.5" font-weight="600" fill="rgba(255,255,255,0.95)" opacity="0.95">Pranayama</text>
-    </g>
-  </g>
-  <!-- Petal 4: Yoga Nidra -->
-  <g transform="rotate(180,275,275)">
-    <g transform="translate(275,93)">
-      <!-- Petal backing (darker outer) -->
-      <path d="M0,-52 Q-38,-52 -40,-22 L-40,18 Q-38,38 -20,46 L-6,54 Q0,58 6,54 L20,46 Q38,38 40,18 L40,-22 Q38,-52 0,-52 Z" fill="#5A4870" opacity="0.85"/>
-      <!-- Petal inner lighter -->
-      <path d="M0,-44 Q-32,-44 -34,-18 L-34,14 Q-32,32 -16,40 L-5,46 Q0,50 5,46 L16,40 Q32,32 34,14 L34,-18 Q32,-44 0,-44 Z" fill="#7B6B9A" opacity="0.9"/>
-      <!-- Yoga figure -->
-      <g fill="rgba(255,255,255,0.95)">
-    <circle cx="-16" cy="-10" r="5.5"/>
-    <ellipse cx="-14.5" cy="-16" rx="3" ry="2"/>
-    <path d="M-16,-4 Q-14,0 0,2 Q16,2 20,-2 Q16,-6 0,-6 Q-14,-6 -16,-4Z"/>
-    <path d="M-16,-4 Q-22,0 -24,4 Q-22,8 -18,6 Q-14,2 -12,-2Z"/>
-    <path d="M16,-2 Q22,2 22,8 Q18,10 14,6 Q12,2 12,-2Z"/>
-    <path d="M-4,2 Q-6,8 -4,14 Q0,16 4,14 Q6,8 4,2Z"/>
-    <path d="M4,2 Q8,8 8,16 Q4,18 0,16 Q-4,14 -4,8Z"/>
-  </g>
-      <!-- Label -->
-      <text x="0" y="32" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9.5" font-weight="600" fill="rgba(255,255,255,0.95)" opacity="0.95">Yoga Nidra</text>
-    </g>
-  </g>
-  <!-- Petal 5: Ashtanga Yoga -->
-  <g transform="rotate(225,275,275)">
-    <g transform="translate(275,93)">
-      <!-- Petal backing (darker outer) -->
-      <path d="M0,-52 Q-38,-52 -40,-22 L-40,18 Q-38,38 -20,46 L-6,54 Q0,58 6,54 L20,46 Q38,38 40,18 L40,-22 Q38,-52 0,-52 Z" fill="#5A4870" opacity="0.85"/>
-      <!-- Petal inner lighter -->
-      <path d="M0,-44 Q-32,-44 -34,-18 L-34,14 Q-32,32 -16,40 L-5,46 Q0,50 5,46 L16,40 Q32,32 34,14 L34,-18 Q32,-44 0,-44 Z" fill="#7B6B9A" opacity="0.9"/>
-      <!-- Yoga figure -->
-      <g fill="rgba(255,255,255,0.95)">
-    <circle cx="-6" cy="0" r="5.5"/>
-    <ellipse cx="-4.5" cy="-6" rx="3" ry="2"/>
-    <path d="M-6,6 Q-14,-6 -18,-18 Q-22,-20 -24,-14 Q-22,-6 -16,-4 Q-10,-2 -6,4Z"/>
-    <path d="M-18,-18 Q-4,-22 8,-18"/>
-    <path d="M8,-18 Q12,-20 14,-14 Q12,-6 8,-4 Q2,-2 -2,2 Q-4,4 -4,6 Q-6,8 -6,6Z"/>
-    <path d="M-4,6 Q-6,14 -8,22 Q-4,24 -2,22 Q0,16 0,10Z"/>
-    <path d="M-2,6 Q0,14 4,22 Q8,24 10,22 Q8,16 4,10Z"/>
-  </g>
-      <!-- Label -->
-      <text x="0" y="32" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9.5" font-weight="600" fill="rgba(255,255,255,0.95)" opacity="0.95">Ashtanga</text><text x="0" y="45" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9.5" font-weight="600" fill="rgba(255,255,255,0.95)" opacity="0.95">Yoga</text>
-    </g>
-  </g>
-  <!-- Petal 6: Wellness Coach -->
-  <g transform="rotate(270,275,275)">
-    <g transform="translate(275,93)">
-      <!-- Petal backing (darker outer) -->
-      <path d="M0,-52 Q-38,-52 -40,-22 L-40,18 Q-38,38 -20,46 L-6,54 Q0,58 6,54 L20,46 Q38,38 40,18 L40,-22 Q38,-52 0,-52 Z" fill="#5A4870" opacity="0.85"/>
-      <!-- Petal inner lighter -->
-      <path d="M0,-44 Q-32,-44 -34,-18 L-34,14 Q-32,32 -16,40 L-5,46 Q0,50 5,46 L16,40 Q32,32 34,14 L34,-18 Q32,-44 0,-44 Z" fill="#7B6B9A" opacity="0.9"/>
-      <!-- Yoga figure -->
-      <g fill="rgba(255,255,255,0.95)">
-    <circle cx="6" cy="-42" r="5.5"/>
-    <ellipse cx="7.5" cy="-48" rx="3" ry="2"/>
-    <path d="M0,-36 Q-2,-24 0,-12 Q8,-8 14,-12 Q16,-24 14,-36 Q10,-38 6,-38 Q2,-38 0,-36Z"/>
-    <path d="M0,-26 Q-10,-22 -16,-20 Q-16,-14 -12,-14 Q-6,-16 -2,-22Z"/>
-    <path d="M14,-26 Q22,-22 24,-20 Q24,-14 20,-14 Q14,-16 12,-22Z"/>
-    <path d="M0,-12 Q-8,-4 -14,8 Q-10,14 -6,10 Q-2,4 2,-4Z"/>
-    <path d="M12,-12 Q16,-2 18,8 Q14,14 10,10 Q8,4 8,-4Z"/>
-  </g>
-      <!-- Label -->
-      <text x="0" y="32" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9.5" font-weight="600" fill="rgba(255,255,255,0.95)" opacity="0.95">Wellness</text><text x="0" y="45" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9.5" font-weight="600" fill="rgba(255,255,255,0.95)" opacity="0.95">Coach</text>
-    </g>
-  </g>
-  <!-- Petal 7: Mind & Body -->
-  <g transform="rotate(315,275,275)">
-    <g transform="translate(275,93)">
-      <!-- Petal backing (darker outer) -->
-      <path d="M0,-52 Q-38,-52 -40,-22 L-40,18 Q-38,38 -20,46 L-6,54 Q0,58 6,54 L20,46 Q38,38 40,18 L40,-22 Q38,-52 0,-52 Z" fill="#5A4870" opacity="0.85"/>
-      <!-- Petal inner lighter -->
-      <path d="M0,-44 Q-32,-44 -34,-18 L-34,14 Q-32,32 -16,40 L-5,46 Q0,50 5,46 L16,40 Q32,32 34,14 L34,-18 Q32,-44 0,-44 Z" fill="#7B6B9A" opacity="0.9"/>
-      <!-- Yoga figure -->
-      <g fill="rgba(255,255,255,0.95)">
-    <circle cx="-6" cy="-30" r="5.5"/>
-    <ellipse cx="-4.5" cy="-36" rx="3" ry="2"/>
-    <path d="M-12,-24 Q-14,-14 -8,2 Q-2,6 4,2 Q8,-6 6,-18 Q2,-22 -2,-22 Q-8,-22 -12,-24Z"/>
-    <path d="M-12,-16 Q-18,-10 -18,-2 Q-14,2 -10,-2 Q-8,-8 -8,-14Z"/>
-    <path d="M6,-16 Q14,-10 16,-2 Q12,4 8,0 Q6,-6 6,-14Z"/>
-    <path d="M-8,2 Q-12,10 -14,20 Q-10,24 -6,20 Q-4,14 -4,8Z"/>
-    <path d="M4,2 Q10,8 14,8 Q14,14 10,18 Q4,14 2,8Z"/>
-  </g>
-      <!-- Label -->
-      <text x="0" y="32" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9.5" font-weight="600" fill="rgba(255,255,255,0.95)" opacity="0.95">Mind & Body</text>
-    </g>
-  </g>
-      </g>
 
-      <!-- CENTER: mandala + meditation lady + chakras -->
-  <!-- Outer ring decorations -->
-  <circle cx="275" cy="275" r="112" fill="none" stroke="#3D224F" stroke-width="0.8" stroke-dasharray="3 8" opacity="0.3"/>
-  <circle cx="275" cy="275" r="118" fill="none" stroke="rgba(200,155,60,0.5)" stroke-width="1" stroke-dasharray="2 10" opacity="0.5"/>
-
-  <!-- Center cream disc -->
-  <circle cx="275" cy="275" r="86" fill="rgba(250,247,242,0.97)"/>
-  <circle cx="275" cy="275" r="84" fill="none" stroke="#3D224F" stroke-width="0.6" opacity="0.2"/>
-
-  <!-- Sun rays -->
-  <line x1="275.0" y1="187.0" x2="275.0" y2="169.0" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="294.6" y1="189.2" x2="298.6" y2="171.7" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="313.2" y1="195.7" x2="321.0" y2="179.5" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="329.9" y1="206.2" x2="341.1" y2="192.1" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="343.8" y1="220.1" x2="357.9" y2="208.9" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="354.3" y1="236.8" x2="370.5" y2="229.0" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="360.8" y1="255.4" x2="378.3" y2="251.4" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="363.0" y1="275.0" x2="381.0" y2="275.0" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="360.8" y1="294.6" x2="378.3" y2="298.6" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="354.3" y1="313.2" x2="370.5" y2="321.0" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="343.8" y1="329.9" x2="357.9" y2="341.1" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="329.9" y1="343.8" x2="341.1" y2="357.9" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="313.2" y1="354.3" x2="321.0" y2="370.5" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="294.6" y1="360.8" x2="298.6" y2="378.3" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="275.0" y1="363.0" x2="275.0" y2="381.0" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="255.4" y1="360.8" x2="251.4" y2="378.3" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="236.8" y1="354.3" x2="229.0" y2="370.5" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="220.1" y1="343.8" x2="208.9" y2="357.9" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="206.2" y1="329.9" x2="192.1" y2="341.1" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="195.7" y1="313.2" x2="179.5" y2="321.0" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="189.2" y1="294.6" x2="171.7" y2="298.6" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="187.0" y1="275.0" x2="169.0" y2="275.0" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="189.2" y1="255.4" x2="171.7" y2="251.4" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="195.7" y1="236.8" x2="179.5" y2="229.0" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="206.2" y1="220.1" x2="192.1" y2="208.9" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="220.1" y1="206.2" x2="208.9" y2="192.1" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="236.8" y1="195.7" x2="229.0" y2="179.5" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/><line x1="255.4" y1="189.2" x2="251.4" y2="171.7" stroke="#3D224F" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/>
-
-  <!-- Inner mandala dots -->
-  <circle cx="275.0" cy="205.0" r="2" fill="#3D224F" opacity="0.2"/><circle cx="301.8" cy="210.3" r="2" fill="#3D224F" opacity="0.2"/><circle cx="324.5" cy="225.5" r="2" fill="#3D224F" opacity="0.2"/><circle cx="339.7" cy="248.2" r="2" fill="#3D224F" opacity="0.2"/><circle cx="345.0" cy="275.0" r="2" fill="#3D224F" opacity="0.2"/><circle cx="339.7" cy="301.8" r="2" fill="#3D224F" opacity="0.2"/><circle cx="324.5" cy="324.5" r="2" fill="#3D224F" opacity="0.2"/><circle cx="301.8" cy="339.7" r="2" fill="#3D224F" opacity="0.2"/><circle cx="275.0" cy="345.0" r="2" fill="#3D224F" opacity="0.2"/><circle cx="248.2" cy="339.7" r="2" fill="#3D224F" opacity="0.2"/><circle cx="225.5" cy="324.5" r="2" fill="#3D224F" opacity="0.2"/><circle cx="210.3" cy="301.8" r="2" fill="#3D224F" opacity="0.2"/><circle cx="205.0" cy="275.0" r="2" fill="#3D224F" opacity="0.2"/><circle cx="210.3" cy="248.2" r="2" fill="#3D224F" opacity="0.2"/><circle cx="225.5" cy="225.5" r="2" fill="#3D224F" opacity="0.2"/><circle cx="248.2" cy="210.3" r="2" fill="#3D224F" opacity="0.2"/>
-  <circle cx="275" cy="275" r="65" fill="none" stroke="#3D224F" stroke-width="0.5" stroke-dasharray="2 6" opacity="0.15"/>
-
-  <!-- ── Meditation silhouette (seated Lotus, Namaste) ── -->
-  <!-- Hair bun -->
-  <ellipse cx="277" cy="215" rx="5" ry="4" fill="#3D224F"/>
-  <!-- Head -->
-  <circle cx="275" cy="225" r="10" fill="#3D224F"/>
-  <!-- Neck -->
-  <rect x="271" y="235" width="8" height="9" rx="3" fill="#3D224F"/>
-  <!-- Torso (wide shoulders, narrow waist, wider hips) -->
-  <path d="M261,244 Q258,261 263,279 Q275,285 287,279 Q292,261 289,244 Q282,241 275,241 Q268,241 261,244Z" fill="#3D224F"/>
-  <!-- Left arm curved out (open/Gyan mudra) -->
-  <path d="M261,253 Q247,255 243,267 Q247,273 251,269 Q257,261 263,257Z" fill="#3D224F"/>
-  <!-- Left hand (open palm) -->
-  <ellipse cx="243" cy="267" rx="5" ry="4" fill="#3D224F"/>
-  <!-- Right arm curved out -->
-  <path d="M289,253 Q303,255 307,267 Q303,273 299,269 Q293,261 287,257Z" fill="#3D224F"/>
-  <!-- Right hand -->
-  <ellipse cx="307" cy="267" rx="5" ry="4" fill="#3D224F"/>
-  <!-- Legs crossed (lotus) -->
-  <path d="M263,279 Q247,287 245,297 Q255,305 275,303 Q295,305 305,297 Q303,287 287,279Z" fill="#3D224F"/>
-  <!-- Left foot on right thigh -->
-  <ellipse cx="293" cy="293" rx="9" ry="5" fill="#3D224F"/>
-  <!-- Right foot on left thigh -->
-  <ellipse cx="257" cy="293" rx="9" ry="5" fill="#3D224F"/>
-
-  <!-- 7 Chakras (Root bottom → Crown top) -->
-  <circle class="chakra" cx="275" cy="297" r="4.5" fill="#E74C3C" opacity="0.9"/>
-  <circle class="chakra" cx="275" cy="287" r="4" fill="#F39C12" opacity="0.9"/>
-  <circle class="chakra" cx="275" cy="277" r="4.5" fill="#F4D03F" opacity="0.9"/>
-  <circle class="chakra" cx="275" cy="265" r="5" fill="#2ECC71" opacity="0.95"/>
-  <circle class="chakra" cx="275" cy="253" r="4" fill="#5DADE2" opacity="0.9"/>
-  <circle class="chakra" cx="275" cy="241" r="4" fill="#8B5CF6" opacity="0.9"/>
-  <circle class="chakra" cx="275" cy="225" r="5.5" fill="#9B59B6" opacity="0.95" style="animation:crown-glow 2s ease-in-out infinite"/>
-    </svg>
-</div>
-</div>
+  <!-- CENTER (fixed) -->
+  <circle cx="250" cy="250" r="60" fill="rgba(45,30,70,0.92)" stroke="#C89B3C" stroke-width="1.5" opacity="0.9"/>
+  <circle cx="250" cy="250" r="40" fill="url(#pgCenter)" filter="url(#pgCenterGlow)"/>
+  <!-- 6 white lotus petals in center -->
+  <g opacity="0.72">
+    <g transform="translate(250,250) rotate(0)"><path d="M0,-37 C-6,-29 -6,-19 0,-15 C6,-19 6,-29 0,-37Z" fill="rgba(255,255,255,0.82)"/></g>
+    <g transform="translate(250,250) rotate(60)"><path d="M0,-37 C-6,-29 -6,-19 0,-15 C6,-19 6,-29 0,-37Z" fill="rgba(255,255,255,0.82)"/></g>
+    <g transform="translate(250,250) rotate(120)"><path d="M0,-37 C-6,-29 -6,-19 0,-15 C6,-19 6,-29 0,-37Z" fill="rgba(255,255,255,0.82)"/></g>
+    <g transform="translate(250,250) rotate(180)"><path d="M0,-37 C-6,-29 -6,-19 0,-15 C6,-19 6,-29 0,-37Z" fill="rgba(255,255,255,0.82)"/></g>
+    <g transform="translate(250,250) rotate(240)"><path d="M0,-37 C-6,-29 -6,-19 0,-15 C6,-19 6,-29 0,-37Z" fill="rgba(255,255,255,0.82)"/></g>
+    <g transform="translate(250,250) rotate(300)"><path d="M0,-37 C-6,-29 -6,-19 0,-15 C6,-19 6,-29 0,-37Z" fill="rgba(255,255,255,0.82)"/></g>
+  </g>
+  <circle cx="250" cy="250" r="8" fill="rgba(255,255,255,0.96)"/>
+  <circle cx="250" cy="250" r="4" fill="#C89B3C"/>
+</svg>
+    </div>
+    </div>
 </section>
 
 <!-- WELLNESS COACHING -->
