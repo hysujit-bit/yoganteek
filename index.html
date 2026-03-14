@@ -140,6 +140,15 @@ footer{background:var(--cream);padding:40px 24px;text-align:center;border-top:1p
     .nav-links a{padding:15px 24px;border-bottom:1px solid rgba(0,0,0,.05);font-size:.95rem;font-weight:500;color:var(--text-dark);}
     .nav-links a:last-child{border-bottom:none;}
 }
+
+/* Hero lotus animation */
+.hero-lotus{display:flex;align-items:center;justify-content:center;}
+.lotus-wrap{position:relative;width:420px;height:420px;}
+@keyframes spin-slow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes spin-rev{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.06);opacity:1}}
+@keyframes pulse-glow{0%,100%{opacity:.5}50%{opacity:1}}
+@media(max-width:900px){.hero-lotus{display:none !important;}.home-hero-inner{grid-template-columns:1fr !important;}}
 </style>
 </head>
 <body>
