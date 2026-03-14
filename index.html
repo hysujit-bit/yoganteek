@@ -156,6 +156,40 @@ footer{background:var(--cream);padding:40px 24px;text-align:center;border-top:1p
 @keyframes breathe{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.06);opacity:1}}
 @keyframes pulse-glow{0%,100%{opacity:.5}50%{opacity:1}}
 @media(max-width:900px){.hero-lotus{display:none !important;}.home-hero-inner{grid-template-columns:1fr !important;}}
+
+/* Rotating hero text */
+.hero-rotating-wrap {
+    display: inline-block;
+    position: relative;
+}
+.hero-rotating-text {
+    display: inline-block;
+    color: #D4A637;
+    font-weight: 700;
+    font-style: normal;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    white-space: nowrap;
+}
+.hero-rotating-text.fade-out {
+    opacity: 0;
+    transform: translateY(-12px);
+}
+.hero-rotating-text.fade-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+.hero-rotating-underline {
+    display: block;
+    height: 3px;
+    background: linear-gradient(90deg, #D4A637, #C89B3C 60%, transparent);
+    border-radius: 2px;
+    margin-top: 4px;
+    width: 0%;
+    transition: width 0.5s ease 0.3s;
+}
+.hero-rotating-underline.active {
+    width: 100%;
+}
 </style>
 </head>
 <body>
@@ -210,7 +244,7 @@ footer{background:var(--cream);padding:40px 24px;text-align:center;border-top:1p
     <div class="home-hero-wrap">
     <div class="home-hero-inner">
         <p class="kicker">Breath &middot; Stretch &middot; Transform</p>
-        <h1>Start living your<br><em>Healthiest Life</em></h1>
+        <h1>Start living your<br><span class="hero-rotating-wrap"><span class="hero-rotating-text fade-in" id="heroRotatingText">Healthiest Life</span><span class="hero-rotating-underline active" id="heroUnderline"></span></span></h1>
         <p class="hero-sub">Experience the transformative power of yoga and holistic wellness. Begin your journey to inner peace, physical vitality, and spiritual harmony with Dr. Jayashree Pattanayak.</p>
         <a href="https://calendly.com/jspyoga1986/30min" target="_blank" class="btn-primary">Book An Appointment &rarr;</a>
     </div>
@@ -356,6 +390,43 @@ const burger=document.getElementById('navBurger');
 const navLinks=document.querySelector('.nav-links');
 burger.addEventListener('click',()=>{burger.classList.toggle('open');navLinks.classList.toggle('open');});
 document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>{burger.classList.remove('open');navLinks.classList.remove('open');}));
+</script>
+
+<script>
+(function() {
+    var phrases = [
+        "Healthiest Life",
+        "Balanced Life",
+        "Mindful Journey",
+        "Holistic Wellness",
+        "Best Self",
+        "Yoga Practice"
+    ];
+    var idx = 0;
+    var el = document.getElementById('heroRotatingText');
+    var ul = document.getElementById('heroUnderline');
+    if (!el) return;
+
+    function rotateTo(next) {
+        // Fade out + underline shrink
+        el.classList.remove('fade-in');
+        el.classList.add('fade-out');
+        ul.classList.remove('active');
+
+        setTimeout(function() {
+            el.textContent = phrases[next];
+            // Fade in + underline grow
+            el.classList.remove('fade-out');
+            el.classList.add('fade-in');
+            ul.classList.add('active');
+        }, 450);
+    }
+
+    setInterval(function() {
+        idx = (idx + 1) % phrases.length;
+        rotateTo(idx);
+    }, 2800);
+})();
 </script>
 </body>
 </html>
