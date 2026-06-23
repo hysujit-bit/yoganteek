@@ -16,7 +16,7 @@
 | Email (Primary / CTA) | jspyoga1986@gmail.com |
 | Email (Business) | yoganteekwellness@gmail.com |
 | Phone | +91 797 831 1312 |
-| WhatsApp | [wa.me/917978311312](https://wa.me/917978311312?text=Hi%20Dr.%20Jayashree%2C%20I%20am%20interested%20in%20your%20wellness%20programs.%20Could%20we%20schedule%20a%20consultation%3F) |
+| WhatsApp | [wa.me/919078419107](https://wa.me/919078419107?text=Hi%20Dr.%20Jayashree%2C%20I%20am%20interested%20in%20your%20wellness%20programs.%20Could%20we%20schedule%20a%20consultation%3F) |
 | Calendly | https://calendly.com/jspyoga1986/30min |
 | Instagram | https://www.instagram.com/yoganteek_wellness/ |
 | Facebook | https://www.facebook.com/profile.php?id=100064091137312# |
