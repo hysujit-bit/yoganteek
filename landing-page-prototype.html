@@ -868,7 +868,7 @@ form.addEventListener('submit', (e) => {
     };
 
     // Save to Neon DB via backend API
-    fetch('http://localhost:8000/api/leads', {
+    fetch('https://yoganteek-api.onrender.com/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
