@@ -1,10 +1,8 @@
-name: Deploy Frontend to cPanel
+name: Deploy to cPanel
 
 on:
   push:
     branches: [master]
-    paths:
-      - 'frontend/**'
   workflow_dispatch:
 
 jobs:
@@ -21,7 +19,18 @@ jobs:
           username: ${{ secrets.CPANEL_USERNAME }}
           password: ${{ secrets.CPANEL_PASSWORD }}
           server-dir: /public_html/
-          local-dir: ./frontend/
+          local-dir: ./
           exclude: |
             **/.git*
             **/.gitignore
+            backend/**
+            .github/**
+            **/*.py
+            **/*.ps1
+            **/*.md
+            **/*.txt
+            **/*.zip
+            **/*.docx
+            **/*.yml
+            node_modules/**
+            __pycache__/**
