@@ -5,7 +5,7 @@
 yoganteek/
 ├── frontend/          → Deploys to cPanel (Cloudhasty)
 │   ├── index.html
-│   ├── landing-page-prototype.html
+│   ├── Yoganteek_ad_enquiry.html
 │   ├── about.html
 │   ├── services.html
 │   ├── contact.html
