@@ -10,3 +10,8 @@ Thumbs.db
 # Editor
 .vscode/
 *.swp
+
+# Credentials (never commit)
+NEON CRED
+NEON CRED.txt
+.github/workflows/Cpanel details.txt
