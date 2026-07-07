@@ -14,27 +14,64 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Copy frontend files to deploy directory
+      - name: Deploy to cPanel via UAPI
+        env:
+          CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
+          CPANEL_USER: ${{ secrets.CPANEL_USER }}
+          CPANEL_PASS: ${{ secrets.CPANEL_PASS }}
         run: |
-          mkdir -p deploy
-          cp -r frontend/* deploy/
-          echo "Files to deploy:"
-          find deploy -type f | head -30
+          echo "Starting deployment to cPanel..."
 
-      - name: Deploy to cPanel via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.0.0
-        with:
-          server: yoganteek.com
-          username: ${{ secrets.CPANEL_USERNAME }}
-          password: ${{ secrets.CPANEL_PASSWORD }}
-          server-dir: /public_html/
-          local-dir: ./deploy/
-          port: 21
-          exclude: |
-            **/.git*
-            **/.gitignore
-            **/*.py
-            **/*.zip
-            **/*.docx
-            **/*.md
-            node_modules/**
+          # Test connection
+          echo "Testing cPanel API connection..."
+          RESPONSE=$(curl -s -u "$CPANEL_USER:$CPANEL_PASS" -k \
+            "$CPANEL_HOST/execute/Fileman/list_files?dir=/public_html" \
+            --connect-timeout 15)
+          
+          if echo "$RESPONSE" | grep -q '"status":1'; then
+            echo "cPanel API connection successful"
+          else
+            echo "ERROR: cPanel API connection failed"
+            echo "$RESPONSE"
+            exit 1
+          fi
+
+          # Count files to deploy
+          FILE_COUNT=$(find frontend -type f ! -path '*/.git*' ! -name '*.py' ! -name '*.zip' ! -name '*.docx' ! -name '*.md' ! -path '*/node_modules/*' | wc -l)
+          echo "Files to deploy: $FILE_COUNT"
+
+          # Upload each file
+          SUCCESS=0
+          FAIL=0
+          
+          find frontend -type f ! -path '*/.git*' ! -name '*.py' ! -name '*.zip' ! -name '*.docx' ! -name '*.md' ! -path '*/node_modules/*' | while read FILE; do
+            # Get relative path from frontend/
+            REL_PATH="${FILE#frontend/}"
+            # Get directory part
+            DIR_PATH=$(dirname "$REL_PATH")
+            
+            # Create directory if needed (skip if root)
+            if [ "$DIR_PATH" != "." ]; then
+              curl -s -u "$CPANEL_USER:$CPANEL_PASS" -k \
+                "$CPANEL_HOST/execute/Fileman/create_directory?dir=/public_html&name=$DIR_PATH" \
+                --connect-timeout 10 > /dev/null 2>&1
+            fi
+            
+            # Upload file
+            UPLOAD_RESPONSE=$(curl -s -u "$CPANEL_USER:$CPANEL_PASS" -k \
+              -F "dir=/public_html/$DIR_PATH" \
+              -F "file-1=@$FILE;filename=$(basename $FILE)" \
+              "$CPANEL_HOST/execute/Fileman/upload_files" \
+              --connect-timeout 30)
+            
+            if echo "$UPLOAD_RESPONSE" | grep -q '"status":1'; then
+              echo "OK: $REL_PATH"
+            else
+              echo "FAIL: $REL_PATH"
+              echo "  Response: $UPLOAD_RESPONSE"
+            fi
+          done
+
+          echo ""
+          echo "Deployment complete!"
+          echo "Verify at: https://yoganteek.com"
