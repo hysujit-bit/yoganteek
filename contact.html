@@ -1,4 +1,4 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -131,7 +131,7 @@ a{text-decoration:none;color:inherit;}
 
 /* ANIMATIONS */
 .book-section{background:var(--sage-wash);}
-.fade-up{opacity:0;transform:translateY(30px);transition:opacity .7s,transform .7s;}
+.fade-up{opacity:1;transform:translateY(30px);transition:opacity .7s,transform .7s;}
 .fade-up.visible{opacity:1;transform:translateY(0);}
 .stagger-1{transition-delay:.1s;}.stagger-2{transition-delay:.2s;}.stagger-3{transition-delay:.3s;}
 
@@ -154,7 +154,7 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
 </head>
 <body>
 <!-- SITE HEADER (built) -->
-<!-- Shared Header â€” loaded by loader.js -->
+<!-- Shared Header — loaded by loader.js -->
 <nav id="main-nav" class="fixed top-0 inset-x-0 z-50 bg-white/90 backdrop-blur-md border-b border-black/5 transition-all duration-300">
   <div class="max-w-6xl mx-auto px-5 flex items-center justify-between h-[72px]">
     <a href="index.html" class="flex-shrink-0">
@@ -324,7 +324,7 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
                         <div class="cf-field">
                             <label class="cf-label" for="cf-subject">Subject <span class="req">*</span></label>
                             <select id="cf-subject" class="cf-input cf-select">
-                                <option value="">â€“ Select a subject â€“</option>
+                                <option value="">– Select a subject –</option>
                                 <option value="general">General Inquiry</option>
                                 <option value="consultation">Book Consultation</option>
                                 <option value="corporate">Corporate Wellness</option>
@@ -390,7 +390,7 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
     var btnText=document.getElementById('cf-btn-text');
     var btnArr=document.getElementById('cf-btn-arrow');
     var spinner=document.getElementById('cf-btn-spinner');
-    btn.disabled=true;btnText.textContent='Sendingâ€¦';btnArr.style.display='none';spinner.style.display='';
+    btn.disabled=true;btnText.textContent='Sending…';btnArr.style.display='none';spinner.style.display='';
 
     var fd={
       name:document.getElementById('cf-name').value.trim(),
@@ -430,8 +430,8 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
         style="background-image: url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=80&w=1200'); background-size: cover; background-position: center; opacity: 0.08;"></div>
 <div class="cta-inner">
     <h2>Ready to Begin Your Wellness Journey?</h2>
-    <p>Take the first step today. Your free consultation is waiting â€“ no commitment required.</p>
-    <a href="#book" onclick="openBookingModal(); return false;" class="btn-gold text-white px-8 py-4 rounded-xl text-base font-semibold shadow-xl inline-block">Book My Free Consultation â†’</a>
+    <p>Take the first step today. Your free consultation is waiting – no commitment required.</p>
+    <a href="#book" onclick="openBookingModal(); return false;" class="btn-gold text-white px-8 py-4 rounded-xl text-base font-semibold shadow-xl inline-block">Book My Free Consultation ?</a>
 </div>
 </section>
 
@@ -442,7 +442,7 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
 
 
 <!-- SITE FOOTER (built) -->
-<!-- Shared Footer â€” loaded by loader.js -->
+<!-- Shared Footer — loaded by loader.js -->
 <footer class="bg-corp-forest text-white py-14">
     <div class="max-w-7xl mx-auto px-6 md:px-12">
 
