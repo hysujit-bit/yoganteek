@@ -103,7 +103,7 @@ a{text-decoration:none;color:inherit;}
 
 /* ANIMATIONS */
 .book-section{background:var(--sage-wash);}
-.fade-up{opacity:1;transform:translateY(30px);transition:opacity .7s,transform .7s;}
+.fade-up{opacity:0;transform:translateY(30px);transition:opacity .7s,transform .7s;}
 .fade-up.visible{opacity:1;transform:translateY(0);}
 .stagger-1{transition-delay:.1s;}.stagger-2{transition-delay:.2s;}.stagger-3{transition-delay:.3s;}
 
@@ -444,5 +444,21 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
     </div>
 </footer>
 
-</body>
+
+<script>
+// Fade-up scroll animation
+(function(){
+  var els = document.querySelectorAll('.fade-up');
+  if('IntersectionObserver' in window){
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); }
+      });
+    },{threshold:0.12});
+    els.forEach(function(el){ obs.observe(el); });
+  } else {
+    els.forEach(function(el){ el.classList.add('visible'); });
+  }
+})();
+</script></body>
 </html>
