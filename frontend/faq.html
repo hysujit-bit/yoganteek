@@ -444,5 +444,42 @@ body{font-family:var(--font-body);color:var(--text-dark);background:var(--white)
 </footer>
 
 <script src="./components/booking-modal.js"></script>
+<script>
+document.querySelectorAll('.faq-trigger').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var item = this.closest('.faq-item');
+    var answer = item.querySelector('.faq-answer');
+    var isOpen = item.classList.contains('open');
+
+    // Close all others
+    document.querySelectorAll('.faq-item.open').forEach(function(openItem) {
+      if (openItem !== item) {
+        openItem.classList.remove('open');
+        openItem.querySelector('.faq-answer').classList.remove('open');
+      }
+    });
+
+    // Toggle current
+    item.classList.toggle('open', !isOpen);
+    answer.classList.toggle('open', !isOpen);
+  });
+});
+
+// Category tab filtering
+document.querySelectorAll('.faq-tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.faq-tab').forEach(function(t) { t.classList.remove('active'); });
+    this.classList.add('active');
+    var cat = this.getAttribute('data-cat');
+    document.querySelectorAll('.faq-item').forEach(function(item) {
+      if (cat === 'all' || item.getAttribute('data-cat') === cat) {
+        item.style.display = '';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  });
+});
+</script>
 </body>
 </html>
