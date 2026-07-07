@@ -22,26 +22,6 @@ body{font-family:var(--font-body);color:var(--text-dark);background:var(--white)
 img{max-width:100%;display:block;}
 a{text-decoration:none;color:inherit;}
 
-/* TOP BAR */
-.top-bar{background:#6B5B8A;padding:8px 24px;font-size:.75rem;color:rgba(255,255,255,.7);position:fixed;top:0;left:0;right:0;z-index:101;}
-.top-bar-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;}
-.top-bar-left{display:flex;align-items:center;gap:20px;}
-.top-bar-left a{color:rgba(255,255,255,.7);transition:color .2s;}
-.top-bar-left a:hover{color:var(--white);}
-.top-bar-right{display:flex;align-items:center;gap:6px;}
-.social-icon{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;color:rgba(255,255,255,.7);transition:all .2s;}
-.social-icon:hover{color:var(--white);background:rgba(255,255,255,.1);}
-.social-icon svg{width:15px;height:15px;}
-
-/* NAV */
-.nav{position:fixed;top:36px;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);backdrop-filter:blur(10px);border-bottom:1px solid rgba(0,0,0,.06);transition:box-shadow .3s;}
-.nav.scrolled{box-shadow:0 2px 20px rgba(0,0,0,.06);}
-.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 24px;}
-.nav-logo img{height:42px;}
-.nav-links{display:flex;align-items:center;gap:28px;}
-.nav-links a{font-size:.88rem;font-weight:500;color:var(--text-body);letter-spacing:.3px;transition:color .2s;}
-.nav-links a:hover,.nav-links a.active{color:var(--sage-dark);font-weight:600;}
-
 /* COMMON */
 .section{padding:80px 24px;}
 .section-inner{max-width:1100px;margin:0 auto;}
@@ -121,41 +101,16 @@ a{text-decoration:none;color:inherit;}
 .service-block .feature p{font-size:.9rem;color:var(--text-body);}
 .service-block .svc-img{background:var(--sage-light);border-radius:20px;height:300px;display:flex;align-items:center;justify-content:center;font-size:4rem;}
 
-/* FOOTER */
-.footer{background:var(--cream);padding:40px 24px;text-align:center;border-top:1px solid rgba(0,0,0,.06);}
-.footer-logo img{height:48px;margin:0 auto 12px;}
-.footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:16px;}
-.footer-links a{font-size:.82rem;color:var(--text-body);transition:color .2s;}
-.footer-links a:hover{color:var(--sage-dark);}
-.footer-social{display:flex;justify-content:center;gap:8px;margin-bottom:16px;}
-.footer-social a{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid rgba(0,0,0,.1);color:var(--text-body);transition:all .2s;}
-.footer-social a:hover{color:var(--white);background:var(--sage);border-color:var(--sage);}
-.footer-social a svg{width:16px;height:16px;}
-.footer-copy{font-size:.72rem;color:var(--text-light);}
-
 /* ANIMATIONS */
 .book-section{background:var(--sage-wash);}
-.fade-up{opacity:1;transform:translateY(0);}
+.fade-up{opacity:0;transform:translateY(30px);transition:opacity .7s,transform .7s;}
 .fade-up.visible{opacity:1;transform:translateY(0);}
 .stagger-1{transition-delay:.1s;}.stagger-2{transition-delay:.2s;}.stagger-3{transition-delay:.3s;}
 
 /* RESPONSIVE */
-/* HAMBURGER */
-.nav-burger{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:6px;flex-shrink:0;}
-.nav-burger span{display:block;width:26px;height:2.5px;background:var(--forest);border-radius:3px;transition:transform .3s,opacity .3s;}
-.nav-burger.open span:nth-child(1){transform:translateY(7.5px) rotate(45deg);}
-.nav-burger.open span:nth-child(2){opacity:0;}
-.nav-burger.open span:nth-child(3){transform:translateY(-7.5px) rotate(-45deg);}
 @media(max-width:900px){
-    .top-bar{display:none;}
-    .nav{top:0 !important;}
     .two-col,.grid-4,.stats-row,.service-block{grid-template-columns:1fr;}
     .team-grid{grid-template-columns:1fr;}
-    .nav-burger{display:flex !important;}
-    .nav-links{display:none;position:fixed;top:68px;left:0;right:0;background:#fff;flex-direction:column;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.08);z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.1);}
-    .nav-links.open{display:flex !important;}
-    .nav-links a{padding:15px 24px;border-bottom:1px solid rgba(0,0,0,.05);font-size:.95rem;font-weight:500;color:var(--text-dark);}
-    .nav-links a:last-child{border-bottom:none;}
     .page-hero h1{font-size:2.2rem;}
     .section-title{font-size:1.8rem;}
     .service-block.reverse{direction:ltr;}
@@ -175,41 +130,115 @@ a{text-decoration:none;color:inherit;}
 .team-linkedin:hover{background:var(--sage);color:var(--white);}
 .team-linkedin svg{width:15px;height:15px;flex-shrink:0;}
 
+
+
 </style>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",sagelight:"#F0EAF5",sagewash:"#F7F4FB",forest:"#6B5B8A",cream:"#FAF7F2",creamdark:"#F0ECE6",warmbrown:"#8B7355",gold:"#C89B3C"}},fontFamily:{serif:["Cormorant Garamond","Georgia","serif"],sans:["DM Sans","sans-serif"]}}}}
+</script>
+
 </head>
 <body>
-
-<div class="top-bar">
-<div class="top-bar-inner">
-    <div class="top-bar-left">
-        <a href="mailto:yoganteekwellness@gmail.com">&#9993; yoganteekwellness@gmail.com</a>
-        <span>|</span>
-        <a href="tel:7978311312">&#9742; +91 797 831 1312</a>
-        <span>|</span>
-        <span>Bannerghatta Road, Bengaluru</span>
+<!-- SITE HEADER (built) -->
+<!-- Shared Header — loaded by loader.js -->
+<nav id="main-nav" class="fixed top-0 inset-x-0 z-50 bg-white/90 backdrop-blur-md border-b border-black/5 transition-all duration-300">
+  <div class="max-w-6xl mx-auto px-5 flex items-center justify-between h-[72px]">
+    <a href="index.html" class="flex-shrink-0">
+      <img src="./assets/logo.svg" alt="Yoganteek Logo" class="logo-img w-auto">
+    </a>
+    <div class="hidden md:flex items-center gap-7">
+      <a href="index.html" class="nav-link font-medium text-sm text-gray-700 hover:text-corp-sagedark transition-colors" data-page="index">Home</a>
+      <a href="about.html" class="nav-link font-medium text-sm text-gray-700 hover:text-corp-sagedark transition-colors" data-page="about">About</a>
+      <a href="services.html" class="nav-link font-medium text-sm text-gray-700 hover:text-corp-sagedark transition-colors" data-page="services">Services</a>
+      <a href="Yoganteek_Corporate_Landing_Page.html" class="nav-link font-medium text-sm text-gray-700 hover:text-corp-sagedark transition-colors" data-page="corporate">Corporate</a>
+      <a href="blog.html" class="nav-link font-medium text-sm text-gray-700 hover:text-corp-sagedark transition-colors" data-page="blog">Blog</a>
+      <a href="#book" onclick="openBookingModal(); return false;" class="ml-2 inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-white text-sm font-semibold shadow-sm hover:shadow-md" style="background:linear-gradient(135deg,#C89B3C 0%,#A07830 100%)">Book Consultation</a>
     </div>
-    <div class="top-bar-right">
-        <a href="https://www.instagram.com/yoganteek_wellness/" target="_blank" class="social-icon" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
-        <a href="https://www.facebook.com/profile.php?id=100064091137312#" target="_blank" class="social-icon" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
-        <a href="https://www.linkedin.com/in/dr-jayashree-pattanayak-0319791a1" target="_blank" class="social-icon" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
-        <a href="https://wa.me/919078419107?text=Hi%20Dr.%20Jayashree%2C%20I%20am%20interested%20in%20your%20wellness%20programs.%20Could%20we%20schedule%20a%20consultation%3F" target="_blank" class="social-icon" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+    <button id="menu-btn" class="md:hidden relative z-50 w-8 h-8 flex flex-col justify-center items-center gap-[5px]" aria-label="Open menu">
+      <span class="block w-[22px] h-[2px] bg-gray-800 rounded transition-all duration-300 origin-center"></span>
+      <span class="block w-[22px] h-[2px] bg-gray-800 rounded transition-all duration-300"></span>
+      <span class="block w-[22px] h-[2px] bg-gray-800 rounded transition-all duration-300 origin-center"></span>
+    </button>
+  </div>
+  <div id="mobile-menu" class="md:hidden overflow-hidden max-h-0 opacity-0 transition-all duration-400 ease-in-out">
+    <div class="bg-white/95 backdrop-blur-md px-6 py-6 border-t border-black/5 space-y-1">
+      <a href="index.html" class="mobile-link block py-3 text-base font-medium text-gray-800 hover:text-corp-sagedark transition-colors" data-page="index">Home</a>
+      <a href="about.html" class="mobile-link block py-3 text-base font-medium text-gray-800 hover:text-corp-sagedark transition-colors" data-page="about">About</a>
+      <a href="services.html" class="mobile-link block py-3 text-base font-medium text-gray-800 hover:text-corp-sagedark transition-colors" data-page="services">Services</a>
+      <a href="Yoganteek_Corporate_Landing_Page.html" class="mobile-link block py-3 text-base font-medium text-gray-800 hover:text-corp-sagedark transition-colors" data-page="corporate">Corporate</a>
+      <a href="blog.html" class="mobile-link block py-3 text-base font-medium text-gray-800 hover:text-corp-sagedark transition-colors" data-page="blog">Blog</a>
+      <a href="#book" onclick="openBookingModal(); return false;" class="mt-4 w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full text-white text-sm font-semibold shadow-sm" style="background:linear-gradient(135deg,#C89B3C 0%,#A07830 100%)">Book Consultation</a>
     </div>
-</div>
-</div>
-
-<nav class="nav" id="nav">
-<div class="nav-inner">
-    <a href="index.html" class="nav-logo"><img src="yoganteek logo png.png" alt="Yoganteek Logo">
-    <div class="nav-links">
-        <a href="index.html">Home</a>
-        <a href="about.html" class="active">About</a>
-        <a href="services.html">Services</a>
-        <a href="Yoganteek_Corporate_Landing_Page.html">Corporate</a>
-        <a href="contact.html">Contact</a>
-    </div>
-    <button class="nav-burger" id="navBurger" aria-label="Menu"><span></span><span></span><span></span></button>
-</div>
+  </div>
 </nav>
+
+<style>
+  /* Header Logo Size */
+  .logo-img { height: 4rem; }
+  @media (min-width: 768px) { .logo-img { height: 8rem; } }
+
+  /* Nav scroll effect */
+  #main-nav { transition: box-shadow 0.3s ease; }
+  #main-nav.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,0.09); }
+
+  /* Mobile menu */
+  #mobile-menu { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease; opacity: 0; }
+  #mobile-menu.open { max-height: 420px; opacity: 1; }
+
+  /* Hamburger animation */
+  #menu-btn span { display: block; width: 22px; height: 2px; background: #2C2C2C; border-radius: 2px; transition: transform 0.3s, opacity 0.2s; transform-origin: center; }
+  #menu-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  #menu-btn.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  #menu-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* Active page */
+  .nav-link.active, .mobile-link.active { color: #5A4A72 !important; font-weight: 600; }
+</style>
+
+<script>
+(function(){
+  var nav = document.getElementById('main-nav');
+  var btn = document.getElementById('menu-btn');
+  var menu = document.getElementById('mobile-menu');
+
+  // Scroll effect
+  if(nav) {
+    window.addEventListener('scroll', function(){
+      nav.classList.toggle('scrolled', window.scrollY > 20);
+    });
+  }
+
+  // Mobile menu toggle
+  if(btn && menu) {
+    btn.addEventListener('click', function(){
+      btn.classList.toggle('open');
+      menu.classList.toggle('open');
+      document.body.style.overflow = menu.classList.contains('open') ? 'hidden' : '';
+    });
+  }
+
+  // Active page detection
+  var p = window.location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav-link, .mobile-link').forEach(function(l){
+    var d = l.getAttribute('data-page');
+    if(d && (p.indexOf(d) !== -1 || (p === '' && d === 'index'))) {
+      l.classList.add('active');
+    }
+  });
+
+  // Close mobile menu on link click
+  document.querySelectorAll('.mobile-link').forEach(function(l){
+    l.addEventListener('click', function(){
+      if(btn) btn.classList.remove('open');
+      if(menu) menu.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+})();
+</script>
+
+
 
 <section class="page-hero">
     <p class="kicker">About Us</p>
@@ -233,7 +262,7 @@ a{text-decoration:none;color:inherit;}
             <p><strong>Disease Management:</strong> A therapeutic approach to wellness through alternative medicine and yoga-based healing.</p>
         </div>
         <div>
-            <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&h=400&fit=crop&q=80" alt="Yoga practice" style="width:100%;height:100%;object-fit:cover;border-radius:20px;">
+            <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&h=400&fit=crop&q=80" alt="Yoga practice" style="width:100%;height:100%;object-fit:cover;border-radius:20px;" alt="Dr. Jayashree Pattanayak" style="border-radius:20px;box-shadow:0 12px 40px rgba(0,0,0,.1);">
         </div>
     </div>
 </div>
@@ -268,7 +297,7 @@ a{text-decoration:none;color:inherit;}
             <br>
             <p>We offer all kinds of yoga techniques while providing excellent customer service and friendly support. We always keep an eye on traditional as well as the latest trends in yoga practices and put our customers' wishes first.</p>
             <br>
-            <a href="https://calendly.com/jspyoga1986/30min" target="_blank" class="btn-primary">Book An Appointment &rarr;</a>
+            <a href="#book" onclick="openBookingModal(); return false;" class="btn-primary">Book An Appointment &rarr;</a>
         </div>
         <div style="border-radius:20px;height:380px;overflow:hidden;"><img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&h=380&fit=crop&q=80" alt="Yoga practice" style="width:100%;height:100%;object-fit:cover;"></div>
     </div>
@@ -343,39 +372,77 @@ a{text-decoration:none;color:inherit;}
 <div class="cta-inner">
     <h2>Begin Your Journey to Wellness</h2>
     <p>Let Jayashree guide you toward a healthier, more balanced life.</p>
-    <a href="https://calendly.com/jspyoga1986/30min" target="_blank" class="btn-white">Book An Appointment &rarr;</a>
+    <a href="#book" onclick="openBookingModal(); return false;" class="btn-white">Book An Appointment &rarr;</a>
 </div>
 </section>
 
 
-<footer class="footer">
-<div class="footer-logo"><img src="yoganteek logo png.png" alt="Yoganteek Logo">
-<div class="footer-links">
-    <a href="index.html">Home</a>
-    <a href="about.html">About</a>
-    <a href="services.html">Services</a>
-    <a href="Yoganteek_Corporate_Landing_Page.html">Corporate</a>
-    <a href="contact.html">Contact</a>
-</div>
-<div class="footer-social">
-    <a href="https://www.instagram.com/yoganteek_wellness/" target="_blank" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
-    <a href="https://www.facebook.com/profile.php?id=100064091137312#" target="_blank" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
-    <a href="https://www.linkedin.com/in/dr-jayashree-pattanayak-0319791a1" target="_blank" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
-    <a href="https://wa.me/919078419107?text=Hi%20Dr.%20Jayashree%2C%20I%20am%20interested%20in%20your%20wellness%20programs.%20Could%20we%20schedule%20a%20consultation%3F" target="_blank" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
-</div>
-<p class="footer-copy">Copyright &copy; 2026 Yoganteek, All Rights Reserved!</p>
+<!-- SITE FOOTER (built) -->
+<!-- Shared Footer — loaded by loader.js -->
+<footer class="bg-corp-forest text-white py-14">
+    <div class="max-w-7xl mx-auto px-6 md:px-12">
+
+        <!-- Partner CTA row -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-corp-sagedark/50 pb-6 mb-10 gap-3">
+            <div>
+                <h3 class="text-xl font-serif font-semibold">Partner with us</h3>
+                <p class="text-corp-sagelight text-xs mt-1">Corporate wellness programs available for teams of all sizes.</p>
+            </div>
+            <a href="Yoganteek_Corporate_Landing_Page.html" class="inline-flex items-center gap-2 text-corp-gold hover:text-white text-sm font-semibold transition-colors whitespace-nowrap">
+                Learn more &rarr;
+            </a>
+        </div>
+
+        <!-- Footer grid -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
+
+            <!-- Brand -->
+            <div class="md:col-span-1">
+                <img src="./assets/footer_logo_white.svg" alt="Yoganteek Footer Logo" class="h-14 w-auto mb-4">
+                <p class="text-corp-sagelight text-xs leading-relaxed">Holistic wellness for mind, body, and spirit. Personalized. Expert-guided. Transformative.</p>
+            </div>
+
+            <!-- Quick Links -->
+            <div>
+                <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Quick Links</h4>
+                <ul class="space-y-2 text-sm text-corp-sagelight">
+                    <li><a href="index.html" class="hover:text-white transition-colors">Home</a></li>
+                    <li><a href="about.html" class="hover:text-white transition-colors">About</a></li>
+                    <li><a href="services.html" class="hover:text-white transition-colors">Services</a></li>
+                    <li><a href="#book" onclick="openBookingModal(); return false;" class="hover:text-white transition-colors">Book Consultation</a></li>
+                </ul>
+            </div>
+
+            <!-- Resources -->
+            <div>
+                <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Resources</h4>
+                <ul class="space-y-2 text-sm text-corp-sagelight">
+                    <li><a href="contact.html" class="hover:text-white transition-colors">Contact Us</a></li>
+                    <li><a href="Yoganteek_Corporate_Landing_Page.html" class="hover:text-white transition-colors">Corporate</a></li>
+                    <li><a href="blog.html" class="hover:text-white transition-colors">Blog</a></li>
+                    <li><a href="faq.html" class="hover:text-white transition-colors">FAQ</a></li>
+                </ul>
+            </div>
+
+            <!-- Social -->
+            <div>
+                <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Follow Us</h4>
+                <div class="flex space-x-3 mb-3">
+                    <a href="https://www.facebook.com/profile.php?id=100064091137312" target="_blank" aria-label="Facebook" class="w-9 h-9 rounded-full bg-corp-sagedark hover:bg-corp-gold flex items-center justify-center transition-colors text-xs font-bold">f</a>
+                    <a href="https://www.linkedin.com/in/dr-jayashree-pattanayak-0319791a1" target="_blank" aria-label="LinkedIn" class="w-9 h-9 rounded-full bg-corp-sagedark hover:bg-corp-gold flex items-center justify-center transition-colors text-xs font-bold">in</a>
+                    <a href="https://www.instagram.com/yoganteek_wellness/" target="_blank" aria-label="Instagram" class="w-9 h-9 rounded-full bg-corp-sagedark hover:bg-corp-gold flex items-center justify-center transition-colors text-xs font-bold">ig</a>
+                </div>
+                <p class="text-corp-sagelight text-xs">@yoganteek.wellness</p>
+            </div>
+        </div>
+
+        <!-- Bottom bar -->
+        <div class="flex flex-col md:flex-row justify-between items-center text-xs text-corp-sagelight pt-6 border-t border-corp-sagedark/40 gap-2">
+            <p>&copy; 2026 Yoganteek Wellness Clinic. All rights reserved.</p>
+            <p>Crafted with care for your well-being.</p>
+        </div>
+    </div>
 </footer>
 
-<script>
-const nav=document.getElementById('nav');
-window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>20);});
-const obs=new IntersectionObserver(e=>{e.forEach(el=>{if(el.isIntersecting)el.target.classList.add('visible');});},{threshold:.15,rootMargin:'0px 0px -40px 0px'});
-document.querySelectorAll('.fade-up').forEach(el=>obs.observe(el));
-
-const burger=document.getElementById('navBurger');
-const navLinks=document.querySelector('.nav-links');
-burger.addEventListener('click',()=>{burger.classList.toggle('open');navLinks.classList.toggle('open');});
-document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>{burger.classList.remove('open');navLinks.classList.remove('open');}));
-</script>
 </body>
 </html>
