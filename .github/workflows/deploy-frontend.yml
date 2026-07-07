@@ -14,11 +14,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
       - name: Copy frontend files to deploy directory
         run: |
           mkdir -p deploy
@@ -29,11 +24,12 @@ jobs:
       - name: Deploy to cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.0.0
         with:
-          server: ${{ secrets.CPANEL_HOST }}
+          server: yoganteek.com
           username: ${{ secrets.CPANEL_USERNAME }}
           password: ${{ secrets.CPANEL_PASSWORD }}
           server-dir: /public_html/
           local-dir: ./deploy/
+          port: 21
           exclude: |
             **/.git*
             **/.gitignore
