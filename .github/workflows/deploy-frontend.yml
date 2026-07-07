@@ -14,43 +14,96 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to cPanel via UAPI
+      - name: Validate secrets
+        run: |
+          if [ -z "${{ secrets.CPANEL_HOST }}" ]; then
+            echo "ERROR: CPANEL_HOST secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.CPANEL_USER }}" ]; then
+            echo "ERROR: CPANEL_USER secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.CPANEL_PASS }}" ]; then
+            echo "ERROR: CPANEL_PASS secret is not set"
+            exit 1
+          fi
+          echo "All secrets are configured"
+
+      - name: Deploy to cPanel
         env:
           CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
           CPANEL_USER: ${{ secrets.CPANEL_USER }}
           CPANEL_PASS: ${{ secrets.CPANEL_PASS }}
         run: |
-          echo "Starting deployment to cPanel..."
+          set +e
+          echo "=== Starting deployment to cPanel ==="
+          echo "Host: $CPANEL_HOST"
+          echo "User: $CPANEL_USER"
 
           # Test connection
-          echo "Testing cPanel API connection..."
+          echo ""
+          echo "--- Testing cPanel API connection ---"
           RESPONSE=$(curl -s -u "$CPANEL_USER:$CPANEL_PASS" -k \
             "$CPANEL_HOST/execute/Fileman/list_files?dir=/public_html" \
             --connect-timeout 15)
           
+          echo "Response preview: $(echo $RESPONSE | head -c 200)"
+          
           if echo "$RESPONSE" | grep -q '"status":1'; then
-            echo "cPanel API connection successful"
+            echo "cPanel API connection: OK"
           else
             echo "ERROR: cPanel API connection failed"
-            echo "$RESPONSE"
+            echo "Full response: $RESPONSE"
             exit 1
           fi
 
-          # Count files to deploy
-          FILE_COUNT=$(find frontend -type f ! -path '*/.git*' ! -name '*.py' ! -name '*.zip' ! -name '*.docx' ! -name '*.md' ! -path '*/node_modules/*' | wc -l)
-          echo "Files to deploy: $FILE_COUNT"
+          # Create tar of frontend files
+          echo ""
+          echo "--- Creating archive ---"
+          tar czf /tmp/frontend.tar.gz -C frontend .
+          echo "Archive created: $(ls -lh /tmp/frontend.tar.gz | awk '{print $5}')"
 
-          # Upload each file
+          # Upload the tar file
+          echo ""
+          echo "--- Uploading archive ---"
+          UPLOAD_DIR="/public_html"
+          UPLOAD_RESPONSE=$(curl -s -u "$CPANEL_USER:$CPANEL_PASS" -k \
+            -F "dir=$UPLOAD_DIR" \
+            -F "file-1=@/tmp/frontend.tar.gz;filename=deploy.tar.gz" \
+            "$CPANEL_HOST/execute/Fileman/upload_files" \
+            --connect-timeout 60)
+          
+          echo "Upload response: $UPLOAD_RESPONSE"
+          
+          if echo "$UPLOAD_RESPONSE" | grep -q '"status":1'; then
+            echo "Archive upload: OK"
+          else
+            echo "ERROR: Archive upload failed"
+            exit 1
+          fi
+
+          # Extract tar on server (delete old files first, then extract)
+          echo ""
+          echo "--- Extracting on server ---"
+          
+          # Use cPanel to run extraction via terminal-like approach
+          # Upload individual files instead
+          echo "Uploading individual files..."
+          
           SUCCESS=0
           FAIL=0
           
-          find frontend -type f ! -path '*/.git*' ! -name '*.py' ! -name '*.zip' ! -name '*.docx' ! -name '*.md' ! -path '*/node_modules/*' | while read FILE; do
-            # Get relative path from frontend/
+          find frontend -type f | while read -r FILE; do
             REL_PATH="${FILE#frontend/}"
-            # Get directory part
             DIR_PATH=$(dirname "$REL_PATH")
             
-            # Create directory if needed (skip if root)
+            # Skip unwanted files
+            case "$REL_PATH" in
+              *.py|*.zip|*.docx|*.md|.git*|node_modules/*) continue ;;
+            esac
+            
+            # Create directory if needed
             if [ "$DIR_PATH" != "." ]; then
               curl -s -u "$CPANEL_USER:$CPANEL_PASS" -k \
                 "$CPANEL_HOST/execute/Fileman/create_directory?dir=/public_html&name=$DIR_PATH" \
@@ -58,20 +111,19 @@ jobs:
             fi
             
             # Upload file
-            UPLOAD_RESPONSE=$(curl -s -u "$CPANEL_USER:$CPANEL_PASS" -k \
+            UPLOAD_RESULT=$(curl -s -u "$CPANEL_USER:$CPANEL_PASS" -k \
               -F "dir=/public_html/$DIR_PATH" \
-              -F "file-1=@$FILE;filename=$(basename $FILE)" \
+              -F "file-1=@$FILE;filename=$(basename "$FILE")" \
               "$CPANEL_HOST/execute/Fileman/upload_files" \
               --connect-timeout 30)
             
-            if echo "$UPLOAD_RESPONSE" | grep -q '"status":1'; then
-              echo "OK: $REL_PATH"
+            if echo "$UPLOAD_RESULT" | grep -q '"status":1'; then
+              echo "  OK: $REL_PATH"
             else
-              echo "FAIL: $REL_PATH"
-              echo "  Response: $UPLOAD_RESPONSE"
+              echo "  FAIL: $REL_PATH"
             fi
           done
 
           echo ""
-          echo "Deployment complete!"
+          echo "=== Deployment complete ==="
           echo "Verify at: https://yoganteek.com"
