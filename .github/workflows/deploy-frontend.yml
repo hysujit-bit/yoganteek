@@ -1,8 +1,10 @@
-name: Deploy to cPanel
+name: Deploy Frontend to cPanel
 
 on:
   push:
     branches: [master]
+    paths:
+      - 'frontend/**'
   workflow_dispatch:
 
 jobs:
@@ -12,6 +14,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Copy frontend files to deploy directory
+        run: |
+          mkdir -p deploy
+          cp -r frontend/* deploy/
+          echo "Files to deploy:"
+          find deploy -type f | head -30
+
       - name: Deploy to cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.0.0
         with:
@@ -19,18 +33,12 @@ jobs:
           username: ${{ secrets.CPANEL_USERNAME }}
           password: ${{ secrets.CPANEL_PASSWORD }}
           server-dir: /public_html/
-          local-dir: ./
+          local-dir: ./deploy/
           exclude: |
             **/.git*
             **/.gitignore
-            backend/**
-            .github/**
             **/*.py
-            **/*.ps1
-            **/*.md
-            **/*.txt
             **/*.zip
             **/*.docx
-            **/*.yml
+            **/*.md
             node_modules/**
-            __pycache__/**
