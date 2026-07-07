@@ -147,6 +147,32 @@ def build_corporate_acknowledgement(contact_name: str, company_name: str) -> str
     """
 
 
+def ensure_leads_table():
+    """Create leads table if it doesn't exist."""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS leads (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                phone VARCHAR(50) NOT NULL,
+                health_goal VARCHAR(100),
+                concern VARCHAR(100),
+                message TEXT,
+                calendly_url TEXT,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
+        conn.commit()
+        cur.close()
+        conn.close()
+        print("[DB] leads table ready")
+    except Exception as e:
+        print(f"[DB] Error ensuring leads table: {e}")
+
+
 def ensure_corporate_table():
     """Create corporate_inquiries table if it doesn't exist."""
     try:
@@ -175,8 +201,15 @@ def ensure_corporate_table():
         print(f"[DB] Error ensuring corporate_inquiries table: {e}")
 
 
-# Ensure table exists on startup
-ensure_corporate_table()
+# Ensure tables exist on startup
+try:
+    conn = get_db()
+    conn.close()
+    print("[DB] Database connection successful")
+    ensure_leads_table()
+    ensure_corporate_table()
+except Exception as e:
+    print(f"[DB] CRITICAL: Database connection failed on startup: {e}")
 
 
 @app.post("/api/leads")
