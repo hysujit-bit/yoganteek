@@ -3,80 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Be Concentric: The Key to Success | Yoganteek Blog</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Feedback | YOGANTEEK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{sage:#C8B8D4;forest:#6B5B8A;cream:#FAF7F2;gold:#C89B3C;warm:#8B7355;dark:#2D2A3E}
-body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--dark);line-height:1.7}
-h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
-
-
-
-.blog-post-hero{position:relative;color:#fff;padding:120px 24px 80px;text-align:center;background:#1a1a2e}
-.blog-post-hero::before{content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1600&h=900&fit=crop&crop=center') center/cover no-repeat;opacity:.5}
-.blog-post-hero>*{position:relative;z-index:1}
-.blog-post-hero .back-link{color:rgba(255,255,255,.8);text-decoration:none;font-size:.9rem;display:inline-flex;align-items:center;gap:6px;margin-bottom:20px;transition:color .3s}
-.blog-post-hero .back-link:hover{color:#fff}
-.blog-post-hero .cat-badge{display:inline-block;background:rgba(255,255,255,.2);backdrop-filter:blur(8px);color:#fff;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:4px 14px;border-radius:20px;margin-bottom:16px}
-.blog-post-hero h1{font-size:2.8rem;margin-bottom:12px;max-width:700px;margin-left:auto;margin-right:auto;text-shadow:0 2px 20px rgba(0,0,0,.3)}
-.blog-post-hero .meta{font-size:.9rem;opacity:.8}
-
-.blog-post-content{max-width:720px;margin:0 auto;padding:48px 24px 80px}
-.blog-post-content h2{font-size:1.8rem;margin:32px 0 12px;color:var(--forest)}
-.blog-post-content p{margin-bottom:18px;font-size:1.05rem;color:#444}
-.blog-post-content ul{margin:16px 0 16px 24px}
-.blog-post-content li{margin-bottom:10px;font-size:1.02rem;color:#444}
-.blog-post-content blockquote{border-left:4px solid var(--gold);padding:16px 20px;margin:24px 0;background:rgba(200,155,60,.06);border-radius:0 10px 10px 0;font-style:italic;color:#555}
-.blog-cta{position:relative;background:linear-gradient(135deg,#4A3A6A,#6B5B8A);border-radius:20px;padding:50px 40px;text-align:center;color:#fff;margin:40px 0;overflow:hidden}
-.blog-cta::before{content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&h=400&fit=crop&crop=center') center/cover no-repeat;opacity:.3}
-.blog-cta::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(74,58,106,.8),rgba(107,91,138,.7))}
-.blog-cta>*{position:relative;z-index:1}
-.blog-cta h3{font-size:1.8rem;margin-bottom:12px}
-.blog-cta p{margin-bottom:24px;opacity:1;font-size:1.05rem;color:#fff}
-.blog-cta .btn{display:inline-block;background:var(--gold);color:#fff;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:600;transition:transform .3s,box-shadow .3s;box-shadow:0 4px 15px rgba(200,155,60,.4)}
-.blog-cta .btn:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(200,155,60,.5)}
-
-@media(max-width:768px){
-  .blog-post-hero h1{font-size:2rem}
+:root {
+    --sage:#C8B8D4; --sage-dark:#5A4A72; --sage-light:#F0EAF5; --sage-wash:#F7F4FB;
+    --forest:#6B5B8A; --cream:#FAF7F2; --cream-dark:#F0ECE6;
+    --warm-brown:#8B7355; --warm-brown-light:#D4C4A8;
+    --text-dark:#2C2C2C; --text-body:#555; --text-light:#888;
+    --white:#fff; --accent-gold:#C89B3C;
+    --font-heading:'Cormorant Garamond',Georgia,serif;
+    --font-body:'DM Sans',-apple-system,sans-serif;
 }
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-body);color:var(--text-dark);background:var(--white);line-height:1.6;}
+img{max-width:100%;display:block;}
+a{text-decoration:none;color:inherit;}
 
-/* Header Logo Size */
-.logo-img { height: 4rem; }
-@media (min-width: 768px) { .logo-img { height: 8rem; } }
+.section{padding:80px 24px;}
+.section-inner{max-width:1100px;margin:0 auto;}
+.section-kicker{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:3px;color:var(--sage);margin-bottom:10px;}
+.section-title{font-family:var(--font-heading);font-size:2.4rem;font-weight:500;color:var(--text-dark);line-height:1.2;margin-bottom:16px;}
+
+.page-hero{padding:140px 24px 60px;text-align:center;background:linear-gradient(135deg,var(--sage-wash) 0%,var(--cream) 50%,var(--sage-wash) 100%);position:relative;overflow:hidden;}
+.page-hero::before{content:'';position:absolute;top:-40%;right:-15%;width:600px;height:600px;background:radial-gradient(circle,rgba(122,139,111,.08) 0%,transparent 70%);border-radius:50%;}
+.page-hero .kicker{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:3px;color:var(--sage);margin-bottom:12px;}
+.page-hero h1{font-family:var(--font-heading);font-size:3rem;font-weight:500;color:var(--text-dark);line-height:1.15;margin-bottom:16px;}
+.page-hero h1 em{font-style:italic;color:var(--sage-dark);}
+.page-hero .subtitle{font-size:1.05rem;color:var(--text-body);max-width:560px;margin:0 auto;line-height:1.6;}
+
+.cta-section{background:var(--sage);padding:80px 24px;text-align:center;position:relative;overflow:hidden;}
+.cta-section::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,0.03) 0%,rgba(0,0,0,0.06) 100%);pointer-events:none;}
+.cta-inner{max-width:600px;margin:0 auto;position:relative;z-index:1;}
+.cta-section h2{font-family:var(--font-heading);font-size:2.6rem;font-weight:500;color:#2C2C2C;line-height:1.2;margin-bottom:16px;}
+.cta-section p{font-size:1rem;color:#555;margin-bottom:10px;}
+
+.btn-primary{display:inline-flex;align-items:center;gap:8px;background:#C89B3C;color:var(--white);font-family:var(--font-body);font-size:.9rem;font-weight:600;padding:14px 32px;border-radius:30px;border:none;cursor:pointer;transition:all .2s;letter-spacing:.3px;}
+.btn-primary:hover{background:#A07830;transform:translateY(-2px);}
+
+.btn-gold{position:relative;overflow:hidden;background:linear-gradient(135deg,#C89B3C 0%,#A07830 100%);transition:transform .2s ease,box-shadow .2s ease;}
+.btn-gold::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);transform:translateX(-100%);transition:transform .5s ease;}
+.btn-gold:hover::after{transform:translateX(100%);}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(200,155,60,.38);}
+.btn-gold:active{transform:translateY(0);}
+
+.feedback-wrapper{max-width:800px;margin:0 auto;background:#fff;border-radius:20px;box-shadow:0 4px 30px rgba(0,0,0,.06);overflow:hidden;border:1px solid rgba(0,0,0,.06);}
+.feedback-wrapper iframe{display:block;width:100%;border:none;}
+
+@media(max-width:900px){
+    .page-hero h1{font-size:2.2rem;}
+    .section-title{font-size:1.8rem;}
+}
 </style>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
-    tailwind.config = {
-        theme: {
-            extend: {
-                colors: {
-                    corp: {
-                        sage: '#C8B8D4',
-                        sagedark: '#5A4A72',
-                        sagelight: '#F0EAF5',
-                        sagewash: '#F7F4FB',
-                        forest: '#6B5B8A',
-                        cream: '#FAF7F2',
-                        creamdark: '#F0ECE6',
-                        warmbrown: '#8B7355',
-                        gold: '#C89B3C',
-                    },
-                },
-                fontFamily: {
-                    serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
-                    sans: ['"DM Sans"', 'sans-serif'],
-                }
-            }
-        }
-    }
+tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",sagelight:"#F0EAF5",sagewash:"#F7F4FB",forest:"#6B5B8A",cream:"#FAF7F2",creamdark:"#F0ECE6",warmbrown:"#8B7355",gold:"#C89B3C"}},fontFamily:{serif:["Cormorant Garamond","Georgia","serif"],sans:["DM Sans","sans-serif"]}}}}
 </script>
-
-
 </head>
 <body>
-<!-- SITE HEADER (built) -->
-<!-- Shared Header — loaded by loader.js -->
 <nav id="main-nav" class="fixed top-0 inset-x-0 z-50 bg-white/90 backdrop-blur-md border-b border-black/5 transition-all duration-300">
   <div class="max-w-6xl mx-auto px-5 flex items-center justify-between h-[72px]">
     <a href="index.html" class="flex-shrink-0">
@@ -109,25 +95,16 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 </nav>
 
 <style>
-  /* Header Logo Size */
   .logo-img { height: 4rem; }
   @media (min-width: 768px) { .logo-img { height: 8rem; } }
-
-  /* Nav scroll effect */
   #main-nav { transition: box-shadow 0.3s ease; }
   #main-nav.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,0.09); }
-
-  /* Mobile menu */
   #mobile-menu { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease; opacity: 0; }
   #mobile-menu.open { max-height: 420px; opacity: 1; }
-
-  /* Hamburger animation */
   #menu-btn span { display: block; width: 22px; height: 2px; background: #2C2C2C; border-radius: 2px; transition: transform 0.3s, opacity 0.2s; transform-origin: center; }
   #menu-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
   #menu-btn.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
   #menu-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-
-  /* Active page */
   .nav-link.active, .mobile-link.active { color: #5A4A72 !important; font-weight: 600; }
 </style>
 
@@ -136,15 +113,11 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
   var nav = document.getElementById('main-nav');
   var btn = document.getElementById('menu-btn');
   var menu = document.getElementById('mobile-menu');
-
-  // Scroll effect
   if(nav) {
     window.addEventListener('scroll', function(){
       nav.classList.toggle('scrolled', window.scrollY > 20);
     });
   }
-
-  // Mobile menu toggle
   if(btn && menu) {
     btn.addEventListener('click', function(){
       btn.classList.toggle('open');
@@ -152,8 +125,6 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
       document.body.style.overflow = menu.classList.contains('open') ? 'hidden' : '';
     });
   }
-
-  // Active page detection
   var p = window.location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('.nav-link, .mobile-link').forEach(function(l){
     var d = l.getAttribute('data-page');
@@ -161,8 +132,6 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
       l.classList.add('active');
     }
   });
-
-  // Close mobile menu on link click
   document.querySelectorAll('.mobile-link').forEach(function(l){
     l.addEventListener('click', function(){
       if(btn) btn.classList.remove('open');
@@ -173,88 +142,48 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 })();
 </script>
 
-
-
-<section class="blog-post-hero">
-  <a href="blog.html" class="back-link">&larr; Back to Blog</a>
-  <span class="cat-badge">Wellness</span>
-  <h1>Be Concentric: The Key to Success</h1>
-  <p class="meta">Published Jun 2025 &middot; By Dr. Jayashree Pattanayak</p>
+<section class="page-hero">
+    <p class="kicker">We Value Your Feedback</p>
+    <h1>Share Your <em>Experience</em></h1>
+    <p class="subtitle">Your feedback helps us improve and serve you better. Take a moment to share your thoughts about our wellness programs and services.</p>
 </section>
 
-<article class="blog-post-content">
-  <p>A great Holy Man said, the only way to success is "Be concentric." It is the secret path to achieve everything.</p>
+<section class="section" style="background:var(--sage-wash);">
+    <div class="section-inner">
+        <div class="text-center mb-10">
+            <p class="section-kicker">Quick &amp; Easy</p>
+            <h2 class="section-title">Feedback Form</h2>
+            <p style="font-size:.95rem;color:var(--text-body);max-width:500px;margin:0 auto;">Fill out the form below. It takes less than 2 minutes and your responses are completely anonymous.</p>
+        </div>
 
-  <p>Everyone dreams of being a great person, a successful person. But a person can be said as successful if one has 4 balanced aspects in life: a balanced healthy personal life, professional life, family life, and social life. If any one aspect gets disturbed and although it has a very big name and fame or a very good bank balance, still he/she cannot be said as a successful person.</p>
+        <div class="feedback-wrapper">
+            <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfMbEuVI1GSypXFSAOP95n6sht2L8hv2o_xIhfvNcbxrIdrCA/viewform?embedded=true" width="640" height="1476" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>
+        </div>
+    </div>
+</section>
 
-  <h2>How Can It Be Possible?</h2>
+<section class="cta-section">
+    <div class="cta-inner">
+        <h2>Ready to Begin Your Wellness Journey?</h2>
+        <p>Take the first step today. Your free consultation is waiting – no commitment required.</p>
+        <a href="#book" onclick="openBookingModal(); return false;" class="btn-gold text-white px-8 py-4 rounded-xl text-base font-semibold shadow-xl inline-block">Book My Free Consultation &rarr;</a>
+    </div>
+</section>
 
-  <p>Varieties of suggestions may come:</p>
-  <ul>
-    <li>Plan out your goal.</li>
-    <li>Seize your points of distraction.</li>
-    <li>Focus on your goal and keep trying to move in the path overcoming all obstacles.</li>
-    <li>Try to imagine and visualize your dream.</li>
-  </ul>
-
-  <p>These are beautiful ways to take you to your dream, but most of the time these are one-way solutions.</p>
-
-  <p>Sometime we find it very difficult when we focus on our career, we make our family life disturbed, or we compromise with our personal health and mind. That is how by the time we earn something, we lose many things at the other side.</p>
-
-  <h2>The Concentric Approach</h2>
-
-  <p>But if we learn the trick to be concentric, it becomes easier to get and maintain the success and lead a better life.</p>
-
-  <p>While the word concentration comes, we visualize something like trataka &mdash; sitting and gazing at a point or doing some yoga postures to improve our concentration and cognitive function. Yes, of course these work, but apart from that we'll discuss something else today.</p>
-
-  <p>We all love to be loved by everyone, to be praised by everyone and for that we try a lot too but always remain unsatisfied. The real satisfaction comes when we love someone or something wholeheartedly and get the same in return.</p>
-
-  <blockquote>
-    Most important and secret psychology of human being is when we love someone we try to become like him and we try to follow him without any doubt and complain. There inadvertently we nurture our love centre and get the spark to move ahead, to reach the ultimate.
-  </blockquote>
-
-  <p>Here comes a balance in life which we call as real yoga.</p>
-
-  <p>So, higher and broader the centre of love, the ideal, the better. For, as high and broad our Ideal is, so high and broad we too become. Only we need to take to the habit of a creeper and entwine around the tree of the ideal; fulfilment of desire shall be ours.</p>
-
-  <p>There comes the concentration automatically. We get the energy, the direction, the guidance, the knowledge to solve the problems and to overcome the obstacles physically, mentally, and spiritually.</p>
-
-  <p>This is the only easiest way to become a successful person and to maintain a great successful life.</p>
-
-  <div class="blog-cta">
-    <h3>Ready to Start Your Wellness Journey?</h3>
-    <p>Book a consultation with Dr. Jayashree to explore how yoga can transform your life.</p>
-    <a href="#book" onclick="openBookingModal(); return false;" class="btn">Book Consultation &rarr;</a>
-  </div>
-</article>
-
-
-<!-- SITE FOOTER (built) -->
-<!-- Shared Footer — loaded by loader.js -->
 <footer class="bg-corp-forest text-white py-14">
     <div class="max-w-7xl mx-auto px-6 md:px-12">
-
-        <!-- Partner CTA row -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-corp-sagedark/50 pb-6 mb-10 gap-3">
             <div>
                 <h3 class="text-xl font-serif font-semibold">Partner with us</h3>
                 <p class="text-corp-sagelight text-xs mt-1">Corporate wellness programs available for teams of all sizes.</p>
             </div>
-            <a href="Yoganteek_Corporate_Landing_Page.html" class="inline-flex items-center gap-2 text-corp-gold hover:text-white text-sm font-semibold transition-colors whitespace-nowrap">
-                Learn more &rarr;
-            </a>
+            <a href="Yoganteek_Corporate_Landing_Page.html" class="inline-flex items-center gap-2 text-corp-gold hover:text-white text-sm font-semibold transition-colors whitespace-nowrap">Learn more &rarr;</a>
         </div>
-
-        <!-- Footer grid -->
         <div class="grid grid-cols-1 md:grid-cols-5 gap-8 mb-10">
-
-            <!-- Brand -->
             <div class="md:col-span-1">
                 <img src="./assets/footer_logo_white.svg" alt="Yoganteek Footer Logo" class="h-14 w-auto mb-4">
                 <p class="text-corp-sagelight text-xs leading-relaxed">Holistic wellness for mind, body, and spirit. Personalized. Expert-guided. Transformative.</p>
             </div>
-
-            <!-- Quick Links -->
             <div>
                 <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Quick Links</h4>
                 <ul class="space-y-2 text-sm text-corp-sagelight">
@@ -264,8 +193,6 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
                     <li><a href="#book" onclick="openBookingModal(); return false;" class="hover:text-white transition-colors">Book Consultation</a></li>
                 </ul>
             </div>
-
-            <!-- Resources -->
             <div>
                 <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Resources</h4>
                 <ul class="space-y-2 text-sm text-corp-sagelight">
@@ -276,8 +203,6 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
                     <li><a href="feedback.html" class="hover:text-white transition-colors">Feedback</a></li>
                 </ul>
             </div>
-
-            <!-- Policies -->
             <div>
                 <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Policies</h4>
                 <ul class="space-y-2 text-sm text-corp-sagelight">
@@ -286,8 +211,6 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
                     <li><a href="refund-policy.html" class="hover:text-white transition-colors">Refund Policy</a></li>
                 </ul>
             </div>
-
-            <!-- Social -->
             <div>
                 <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Follow Us</h4>
                 <div class="flex space-x-3 mb-3">
@@ -298,15 +221,12 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
                 <p class="text-corp-sagelight text-xs">@yoganteek.wellness</p>
             </div>
         </div>
-
-        <!-- Bottom bar -->
         <div class="flex flex-col md:flex-row justify-between items-center text-xs text-corp-sagelight pt-6 border-t border-corp-sagedark/40 gap-2">
             <p>&copy; 2026 Yoganteek Wellness Clinic. All rights reserved.</p>
             <p>Crafted with care for your well-being.</p>
         </div>
     </div>
 </footer>
-
 <script src="./components/booking-modal.js"></script>
 </body>
 </html>
