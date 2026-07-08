@@ -380,7 +380,7 @@
       function initCalendly() {
         if (typeof Calendly !== 'undefined' && Calendly.initInlineWidget) {
           Calendly.initInlineWidget({
-            url: 'https://calendly.com/jspyoga1986/30min?email=' + encodeURIComponent(fd.email) + '&name=' + encodeURIComponent(fd.name),
+            url: 'https://calendly.com/yoganteekwellness/30min?email=' + encodeURIComponent(fd.email) + '&name=' + encodeURIComponent(fd.name),
             parentElement: document.getElementById('bm-calendly-widget')
           });
         } else {
