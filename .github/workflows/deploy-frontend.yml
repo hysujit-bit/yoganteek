@@ -58,49 +58,21 @@ jobs:
             exit 1
           fi
 
-          # Create tar of frontend files
+          # Upload individual files
           echo ""
-          echo "--- Creating archive ---"
-          tar czf /tmp/frontend.tar.gz -C frontend .
-          echo "Archive created: $(ls -lh /tmp/frontend.tar.gz | awk '{print $5}')"
-
-          # Upload the tar file
-          echo ""
-          echo "--- Uploading archive ---"
-          UPLOAD_DIR="/public_html"
-          UPLOAD_RESPONSE=$(curl -s -u "$CPANEL_USER:$CPANEL_PASS" -k \
-            -F "dir=$UPLOAD_DIR" \
-            -F "file-1=@/tmp/frontend.tar.gz;filename=deploy.tar.gz" \
-            "$CPANEL_HOST/execute/Fileman/upload_files" \
-            --connect-timeout 60)
-          
-          echo "Upload response: $UPLOAD_RESPONSE"
-          
-          if echo "$UPLOAD_RESPONSE" | grep -q '"status":1'; then
-            echo "Archive upload: OK"
-          else
-            echo "ERROR: Archive upload failed"
-            exit 1
-          fi
-
-          # Extract tar on server (delete old files first, then extract)
-          echo ""
-          echo "--- Extracting on server ---"
-          
-          # Use cPanel to run extraction via terminal-like approach
-          # Upload individual files instead
-          echo "Uploading individual files..."
+          echo "--- Uploading individual files ---"
           
           SUCCESS=0
           FAIL=0
           
-          find frontend -type f | while read -r FILE; do
-            REL_PATH="${FILE#frontend/}"
+          cd frontend
+          find . -type f | while read -r FILE; do
+            REL_PATH="${FILE#./}"
             DIR_PATH=$(dirname "$REL_PATH")
             
             # Skip unwanted files
             case "$REL_PATH" in
-              *.py|*.zip|*.docx|*.md|.git*|node_modules/*) continue ;;
+              *.py|*.zip|*.docx|*.md|.git*|node_modules/*) echo "  SKIP: $REL_PATH"; continue ;;
             esac
             
             # Create directory if needed
@@ -113,7 +85,7 @@ jobs:
             # Upload file
             UPLOAD_RESULT=$(curl -s -u "$CPANEL_USER:$CPANEL_PASS" -k \
               -F "dir=/public_html/$DIR_PATH" \
-              -F "file-1=@$FILE;filename=$(basename "$FILE")" \
+              -F "file-1=@$REL_PATH;filename=$(basename "$REL_PATH")" \
               "$CPANEL_HOST/execute/Fileman/upload_files" \
               --connect-timeout 30)
             
@@ -123,7 +95,8 @@ jobs:
               echo "  FAIL: $REL_PATH"
             fi
           done
-
+          cd ..
+          
           echo ""
           echo "=== Deployment complete ==="
           echo "Verify at: https://yoganteek.com"
