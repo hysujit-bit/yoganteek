@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Services | YOGANTEEK</title>
+<title>Terms & Conditions | YOGANTEEK</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -21,8 +21,6 @@ html{scroll-behavior:smooth;}
 body{font-family:var(--font-body);color:var(--text-dark);background:var(--white);line-height:1.6;}
 img{max-width:100%;display:block;}
 a{text-decoration:none;color:inherit;}
-
-
 
 .section{padding:80px 24px;}
 .section-inner{max-width:1100px;margin:0 auto;}
@@ -44,34 +42,26 @@ a{text-decoration:none;color:inherit;}
 .page-hero h1 em{font-style:italic;color:var(--sage-dark);}
 .page-hero .subtitle{font-size:1.05rem;color:var(--text-body);max-width:560px;margin:0 auto;line-height:1.6;}
 
+.policy-content{max-width:800px;margin:0 auto;}
+.policy-content h2{font-family:var(--font-heading);font-size:1.6rem;font-weight:500;color:var(--text-dark);margin-bottom:12px;margin-top:32px;}
+.policy-content h2:first-child{margin-top:0;}
+.policy-content p{font-size:.95rem;color:var(--text-body);line-height:1.7;margin-bottom:12px;}
+.policy-content ul{list-style:disc;padding-left:24px;margin-bottom:12px;}
+.policy-content li{font-size:.95rem;color:var(--text-body);line-height:1.7;margin-bottom:6px;}
+
 .cta-section{background:linear-gradient(135deg,var(--forest) 0%,var(--sage-dark) 100%);padding:80px 24px;text-align:center;position:relative;overflow:hidden;}
 .cta-section::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 60px,rgba(255,255,255,.02) 60px,rgba(255,255,255,.02) 61px);}
 .cta-inner{max-width:600px;margin:0 auto;position:relative;z-index:1;}
 .cta-section h2{font-family:var(--font-heading);font-size:2.6rem;font-weight:500;color:var(--white);line-height:1.2;margin-bottom:16px;}
 .cta-section p{font-size:1rem;color:rgba(255,255,255,.7);margin-bottom:10px;}
 
-.service-block{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;padding:60px 0;border-bottom:1px solid rgba(0,0,0,.06);}
-.service-block:last-child{border-bottom:none;}
-.service-block.reverse{direction:rtl;}
-.service-block.reverse>*{direction:ltr;}
-.service-block h2{font-family:var(--font-heading);font-size:2rem;font-weight:500;margin-bottom:16px;}
-.service-block .feature{margin-bottom:14px;}
-.service-block .feature h4{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:var(--sage);margin-bottom:2px;}
-.service-block .feature p{font-size:.9rem;color:var(--text-body);}
-.service-block .svc-img{border-radius:20px;height:300px;overflow:hidden;}
-
 .fade-up{opacity:0;transform:translateY(30px);transition:opacity .7s,transform .7s;}
 .fade-up.visible{opacity:1;transform:translateY(0);}
 
-
 @media(max-width:900px){
-    .service-block{grid-template-columns:1fr;}
-    .service-block.reverse{direction:ltr;}
-
     .page-hero h1{font-size:2.2rem;}
     .section-title{font-size:1.8rem;}
 }
-
 </style>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -79,8 +69,6 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
 </script>
 </head>
 <body>
-<!-- SITE HEADER (built) -->
-<!-- Shared Header — loaded by loader.js -->
 <nav id="main-nav" class="fixed top-0 inset-x-0 z-50 bg-white/90 backdrop-blur-md border-b border-black/5 transition-all duration-300">
   <div class="max-w-6xl mx-auto px-5 flex items-center justify-between h-[72px]">
     <a href="index.html" class="flex-shrink-0">
@@ -113,25 +101,16 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
 </nav>
 
 <style>
-  /* Header Logo Size */
   .logo-img { height: 4rem; }
   @media (min-width: 768px) { .logo-img { height: 8rem; } }
-
-  /* Nav scroll effect */
   #main-nav { transition: box-shadow 0.3s ease; }
   #main-nav.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,0.09); }
-
-  /* Mobile menu */
   #mobile-menu { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease; opacity: 0; }
   #mobile-menu.open { max-height: 420px; opacity: 1; }
-
-  /* Hamburger animation */
   #menu-btn span { display: block; width: 22px; height: 2px; background: #2C2C2C; border-radius: 2px; transition: transform 0.3s, opacity 0.2s; transform-origin: center; }
   #menu-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
   #menu-btn.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
   #menu-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-
-  /* Active page */
   .nav-link.active, .mobile-link.active { color: #5A4A72 !important; font-weight: 600; }
 </style>
 
@@ -141,14 +120,12 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
   var btn = document.getElementById('menu-btn');
   var menu = document.getElementById('mobile-menu');
 
-  // Scroll effect
   if(nav) {
     window.addEventListener('scroll', function(){
       nav.classList.toggle('scrolled', window.scrollY > 20);
     });
   }
 
-  // Mobile menu toggle
   if(btn && menu) {
     btn.addEventListener('click', function(){
       btn.classList.toggle('open');
@@ -157,7 +134,6 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
     });
   }
 
-  // Active page detection
   var p = window.location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('.nav-link, .mobile-link').forEach(function(l){
     var d = l.getAttribute('data-page');
@@ -166,7 +142,6 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
     }
   });
 
-  // Close mobile menu on link click
   document.querySelectorAll('.mobile-link').forEach(function(l){
     l.addEventListener('click', function(){
       if(btn) btn.classList.remove('open');
@@ -177,107 +152,69 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
 })();
 </script>
 
-
-
 <section class="page-hero">
-    <p class="kicker">Services</p>
-    <h1>Empowering your balanced, <em>fulfilling</em> life.</h1>
-    <p class="subtitle">Personalized yoga therapy, nutrition guidance, and wellness coaching to help you achieve holistic health and lasting transformation.</p>
+    <p class="kicker">Legal</p>
+    <h1>Terms & Conditions</h1>
+    <p class="subtitle">Please read these terms carefully before using our services.</p>
 </section>
 
 <section class="section">
 <div class="section-inner">
+    <div class="policy-content fade-up">
+        <h2>Acceptance of Terms</h2>
+        <p>By accessing and using the Yoganteek website and services, you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, please do not use our services.</p>
 
-    <!-- 1. Weight Management -->
-    <div class="service-block fade-up">
-        <div>
-            <h2>Weight Management</h2>
-            <div class="feature"><h4>Personalized weight goals</h4><p>Customized plans to achieve realistic and sustainable weight targets tailored to your body type.</p></div>
-            <div class="feature"><h4>Behavioral support</h4><p>Strategies to build healthier eating habits and overcome emotional eating patterns.</p></div>
-            <div class="feature"><h4>Yoga &amp; nutrition integration</h4><p>Combine targeted yoga practices with expert dietary guidance for optimal results.</p></div>
-            <a href="#book" onclick="openBookingModal(); return false;" class="btn-primary" style="margin-top:8px;">Book Consultation &rarr;</a>
-        </div>
-        <div class="svc-img"><img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400&fit=crop&q=80" alt="Weight Management" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></div>
+        <h2>Services Description</h2>
+        <p>Yoganteek offers a range of wellness services including:</p>
+        <ul>
+            <li>Yoga therapy and personalized yoga programs</li>
+            <li>Nutrition counseling and diet planning</li>
+            <li>Wellness coaching and lifestyle guidance</li>
+            <li>Corporate wellness programs</li>
+        </ul>
+
+        <h2>Booking & Consultations</h2>
+        <p>Consultations can be booked online through our Calendly scheduling system. Consultation fees are as mentioned at the time of booking. We enforce a 24-hour rescheduling policy for all appointments.</p>
+
+        <h2>Health Disclaimer</h2>
+        <p>Our services are not a substitute for professional medical advice, diagnosis, or treatment. Always consult your physician or qualified healthcare provider before starting any new exercise or wellness program, especially if you have pre-existing health conditions. Yoga and physical exercises carry inherent risks, and you participate at your own discretion.</p>
+
+        <h2>Payment Terms</h2>
+        <p>Service fees are as quoted at the time of booking or as per the agreed program package. Payment is required before session commencement. We accept payments via the modes specified during the booking process.</p>
+
+        <h2>Cancellation & Rescheduling</h2>
+        <p>A minimum of 24 hours' notice is required for any cancellation or rescheduling. No-shows without prior notice will not be eligible for refunds or rescheduling. Late cancellations may be subject to full session charges.</p>
+
+        <h2>Intellectual Property</h2>
+        <p>All content on this website, including text, images, logos, graphics, videos, and program materials, is the property of Yoganteek Wellness Clinic and is protected by applicable intellectual property laws. No reproduction, distribution, or modification is permitted without prior written consent.</p>
+
+        <h2>Limitation of Liability</h2>
+        <p>Yoganteek shall not be liable for any indirect, incidental, or consequential damages arising from the use of our services. Our maximum liability shall be limited to the fees paid for the specific service in question.</p>
+
+        <h2>Governing Law</h2>
+        <p>These Terms and Conditions are governed by and construed in accordance with the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts in Odisha, India.</p>
+
+        <h2>Modifications</h2>
+        <p>We reserve the right to update or modify these terms at any time without prior notice. Continued use of our website and services after any changes constitutes acceptance of the revised terms.</p>
+
+        <h2>Contact</h2>
+        <p>If you have any questions about these Terms and Conditions, please contact us:</p>
+        <p><strong>Email:</strong> yoganteekwellness@gmail.com<br>
+        <strong>Phone:</strong> +91 797 831 1312</p>
     </div>
-
-    <!-- 2. Gynecology Disorder (PCOS & PCOD) -->
-    <div class="service-block reverse fade-up">
-        <div>
-            <h2>Gynecology Disorder (PCOS &amp; PCOD)</h2>
-            <div class="feature"><h4>Hormonal balance through yoga</h4><p>Targeted asanas and breathing practices to regulate hormonal cycles naturally.</p></div>
-            <div class="feature"><h4>Nutrition &amp; lifestyle guidance</h4><p>Customised dietary plans to manage symptoms and support overall hormonal health.</p></div>
-            <div class="feature"><h4>Stress reduction &amp; mindfulness</h4><p>Proven techniques to lower cortisol and reduce the impact of stress on PCOS/PCOD.</p></div>
-            <a href="#book" onclick="openBookingModal(); return false;" class="btn-primary" style="margin-top:8px;">Book Consultation &rarr;</a>
-        </div>
-        <div class="svc-img"><img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&h=400&fit=crop&q=80" alt="PCOS & PCOD" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></div>
-    </div>
-
-    <!-- 3. Anxiety & Stress Management -->
-    <div class="service-block fade-up">
-        <div>
-            <h2>Anxiety &amp; Stress Management</h2>
-            <div class="feature"><h4>Pranayama &amp; breathwork</h4><p>Calming breathing techniques to reduce anxiety, lower blood pressure, and restore inner peace.</p></div>
-            <div class="feature"><h4>Guided meditation</h4><p>Mindfulness and visualization practices to quiet the mind and build emotional resilience.</p></div>
-            <div class="feature"><h4>Therapeutic yoga</h4><p>Gentle, restorative yoga sequences designed to release tension stored in the body.</p></div>
-            <a href="#book" onclick="openBookingModal(); return false;" class="btn-primary" style="margin-top:8px;">Book Consultation &rarr;</a>
-        </div>
-        <div class="svc-img"><img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&h=400&fit=crop&q=80" alt="Anxiety & Stress Management" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></div>
-    </div>
-
-    <!-- 4. Fatty Liver Issue -->
-    <div class="service-block reverse fade-up">
-        <div>
-            <h2>Fatty Liver Issue</h2>
-            <div class="feature"><h4>Liver-friendly nutrition</h4><p>Specialized dietary plans rich in antioxidants and anti-inflammatory foods to support liver detoxification.</p></div>
-            <div class="feature"><h4>Detox yoga practices</h4><p>Twisting and compression asanas that stimulate liver function and promote natural cleansing.</p></div>
-            <div class="feature"><h4>Lifestyle modifications</h4><p>Holistic guidance on sleep, hydration, and daily routines to reverse fatty liver naturally.</p></div>
-            <a href="#book" onclick="openBookingModal(); return false;" class="btn-primary" style="margin-top:8px;">Book Consultation &rarr;</a>
-        </div>
-        <div class="svc-img"><img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=600&h=400&fit=crop&q=80" alt="Fatty Liver Issue" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></div>
-    </div>
-
-    <!-- 5. Diabetes & Sugar Control -->
-    <div class="service-block fade-up">
-        <div>
-            <h2>Diabetes &amp; Sugar Control</h2>
-            <div class="feature"><h4>Blood sugar management</h4><p>Evidence-based nutritional strategies to stabilize blood glucose levels throughout the day.</p></div>
-            <div class="feature"><h4>Diabetic-friendly yoga</h4><p>Specific asanas proven to improve insulin sensitivity and support pancreatic health.</p></div>
-            <div class="feature"><h4>Comprehensive care plan</h4><p>Personalized program combining diet, yoga, and lifestyle changes for long-term diabetes management.</p></div>
-            <a href="#book" onclick="openBookingModal(); return false;" class="btn-primary" style="margin-top:8px;">Book Consultation &rarr;</a>
-        </div>
-        <div class="svc-img"><img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600&h=400&fit=crop&q=80" alt="Diabetes & Sugar Control" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></div>
-    </div>
-
-    <!-- 6. Sleeping Disorder -->
-    <div class="service-block reverse fade-up">
-        <div>
-            <h2>Sleeping Disorder</h2>
-            <div class="feature"><h4>Sleep hygiene coaching</h4><p>Expert guidance on establishing healthy sleep routines and optimizing your sleep environment.</p></div>
-            <div class="feature"><h4>Yoga Nidra &amp; relaxation</h4><p>Deep relaxation techniques that calm the nervous system and prepare the body for restorative sleep.</p></div>
-            <div class="feature"><h4>Evening wind-down practices</h4><p>Gentle yoga sequences and breathing exercises to release daily stress before bedtime.</p></div>
-            <a href="#book" onclick="openBookingModal(); return false;" class="btn-primary" style="margin-top:8px;">Book Consultation &rarr;</a>
-        </div>
-        <div class="svc-img"><img src="https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=600&h=400&fit=crop&q=80" alt="Sleeping Disorder" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></div>
-    </div>
-
 </div>
 </section>
 
 <section class="cta-section">
 <div class="cta-inner">
-    <h2>Ready to Start Your Journey?</h2>
-    <p>Choose the program that's right for you and take the first step toward a healthier life.</p>
-    <a href="#book" onclick="openBookingModal(); return false;" class="btn-white">Book Consultation &rarr;</a>
+    <h2>Need Clarification on Our Terms?</h2>
+    <p>Reach out to us for any questions regarding our terms and conditions.</p>
+    <a href="contact.html" class="btn-white">Contact Us &rarr;</a>
 </div>
 </section>
 
-
-<!-- SITE FOOTER (built) -->
-<!-- Shared Footer — loaded by loader.js -->
 <footer class="bg-corp-forest text-white py-14">
     <div class="max-w-7xl mx-auto px-6 md:px-12">
-
-        <!-- Partner CTA row -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-corp-sagedark/50 pb-6 mb-10 gap-3">
             <div>
                 <h3 class="text-xl font-serif font-semibold">Partner with us</h3>
@@ -288,16 +225,12 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
             </a>
         </div>
 
-        <!-- Footer grid -->
         <div class="grid grid-cols-1 md:grid-cols-5 gap-8 mb-10">
-
-            <!-- Brand -->
             <div class="md:col-span-1">
                 <img src="./assets/footer_logo_white.svg" alt="Yoganteek Footer Logo" class="h-14 w-auto mb-4">
                 <p class="text-corp-sagelight text-xs leading-relaxed">Holistic wellness for mind, body, and spirit. Personalized. Expert-guided. Transformative.</p>
             </div>
 
-            <!-- Quick Links -->
             <div>
                 <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Quick Links</h4>
                 <ul class="space-y-2 text-sm text-corp-sagelight">
@@ -308,7 +241,6 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
                 </ul>
             </div>
 
-            <!-- Resources -->
             <div>
                 <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Resources</h4>
                 <ul class="space-y-2 text-sm text-corp-sagelight">
@@ -319,17 +251,15 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
                 </ul>
             </div>
 
-            <!-- Policies -->
             <div>
                 <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Policies</h4>
                 <ul class="space-y-2 text-sm text-corp-sagelight">
                     <li><a href="privacy-policy.html" class="hover:text-white transition-colors">Privacy Policy</a></li>
-                    <li><a href="terms-conditions.html" class="hover:text-white transition-colors">Terms &amp; Conditions</a></li>
+                    <li><a href="terms-conditions.html" class="hover:text-white transition-colors">Terms & Conditions</a></li>
                     <li><a href="refund-policy.html" class="hover:text-white transition-colors">Refund Policy</a></li>
                 </ul>
             </div>
 
-            <!-- Social -->
             <div>
                 <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Follow Us</h4>
                 <div class="flex space-x-3 mb-3">
@@ -341,7 +271,6 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
             </div>
         </div>
 
-        <!-- Bottom bar -->
         <div class="flex flex-col md:flex-row justify-between items-center text-xs text-corp-sagelight pt-6 border-t border-corp-sagedark/40 gap-2">
             <p>&copy; 2026 Yoganteek Wellness Clinic. All rights reserved.</p>
             <p>Crafted with care for your well-being.</p>

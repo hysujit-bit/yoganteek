@@ -396,12 +396,11 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
       name:document.getElementById('cf-name').value.trim(),
       email:document.getElementById('cf-email').value.trim(),
       phone:document.getElementById('cf-phone').value.trim(),
-      health_goal:document.getElementById('cf-subject').value,
-      concern:'',
+      subject:document.getElementById('cf-subject').value,
       message:document.getElementById('cf-message').value.trim()
     };
 
-    fetch('https://yoganteek-api.onrender.com/api/leads',{
+    fetch('https://yoganteek-api.onrender.com/api/contact-submissions',{
       method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(fd)
     })
     .then(function(r){return r.json();})
@@ -458,7 +457,7 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
         </div>
 
         <!-- Footer grid -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-8 mb-10">
 
             <!-- Brand -->
             <div class="md:col-span-1">
@@ -485,6 +484,16 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
                     <li><a href="Yoganteek_Corporate_Landing_Page.html" class="hover:text-white transition-colors">Corporate</a></li>
                     <li><a href="blog.html" class="hover:text-white transition-colors">Blog</a></li>
                     <li><a href="faq.html" class="hover:text-white transition-colors">FAQ</a></li>
+                </ul>
+            </div>
+
+            <!-- Policies -->
+            <div>
+                <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Policies</h4>
+                <ul class="space-y-2 text-sm text-corp-sagelight">
+                    <li><a href="privacy-policy.html" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                    <li><a href="terms-conditions.html" class="hover:text-white transition-colors">Terms &amp; Conditions</a></li>
+                    <li><a href="refund-policy.html" class="hover:text-white transition-colors">Refund Policy</a></li>
                 </ul>
             </div>
 

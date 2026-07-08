@@ -43,6 +43,14 @@ class LeadCreate(BaseModel):
     calendly_url: Optional[str] = None
 
 
+class ContactSubmissionCreate(BaseModel):
+    name: str
+    email: str
+    phone: Optional[str] = None
+    subject: str
+    message: str
+
+
 class CorporateInquiryCreate(BaseModel):
     company_name: str
     contact_name: str
@@ -147,6 +155,32 @@ def build_corporate_acknowledgement(contact_name: str, company_name: str) -> str
     """
 
 
+def build_contact_acknowledgement(name: str, subject: str) -> str:
+    return f"""
+    <div style="font-family:'DM Sans',Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#fafafa;">
+      <div style="text-align:center;margin-bottom:24px;">
+        <h1 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;color:#2D2A3E;margin:0;">Yoganteek Wellness</h1>
+        <p style="font-size:12px;color:#888;margin-top:4px;">Dr. Jayashree Pattanayak</p>
+      </div>
+      <div style="background:#fff;border-radius:16px;padding:32px;border:1px solid rgba(0,0,0,.06);">
+        <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;color:#2D2A3E;margin:0 0 12px;">Thank You, {name}!</h2>
+        <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 16px;">
+          We've received your message regarding <strong>{subject}</strong>. Our team will review it and get back to you within <strong>24 hours</strong>.
+        </p>
+        <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 16px;">
+          In the meantime, feel free to reach out to us at
+          <a href="mailto:yoganteekwellness@gmail.com" style="color:#5A4A72;">yoganteekwellness@gmail.com</a>
+          or call us at <a href="tel:7978311312" style="color:#5A4A72;">+91 797 831 1312</a>.
+        </p>
+        <p style="font-size:14px;color:#555;line-height:1.7;margin:0;">Namaste!</p>
+      </div>
+      <div style="text-align:center;margin-top:24px;">
+        <p style="font-size:11px;color:#aaa;">&copy; 2026 Yoganteek Wellness Clinic. All rights reserved.</p>
+      </div>
+    </div>
+    """
+
+
 def ensure_leads_table():
     """Create leads table if it doesn't exist."""
     try:
@@ -201,6 +235,31 @@ def ensure_corporate_table():
         print(f"[DB] Error ensuring corporate_inquiries table: {e}")
 
 
+def ensure_contact_submissions_table():
+    """Create contact_submissions table if it doesn't exist."""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS contact_submissions (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                phone VARCHAR(50),
+                subject VARCHAR(100) NOT NULL,
+                message TEXT NOT NULL,
+                source VARCHAR(100) DEFAULT 'contact-page',
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
+        conn.commit()
+        cur.close()
+        conn.close()
+        print("[DB] contact_submissions table ready")
+    except Exception as e:
+        print(f"[DB] Error ensuring contact_submissions table: {e}")
+
+
 # Ensure tables exist on startup
 try:
     conn = get_db()
@@ -208,6 +267,7 @@ try:
     print("[DB] Database connection successful")
     ensure_leads_table()
     ensure_corporate_table()
+    ensure_contact_submissions_table()
 except Exception as e:
     print(f"[DB] CRITICAL: Database connection failed on startup: {e}")
 
@@ -305,6 +365,55 @@ def get_corporate_inquiries():
                 "industry": row[8], "message": row[9], "created_at": str(row[10])
             })
         return {"inquiries": inquiries, "count": len(inquiries)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/contact-submissions")
+def create_contact_submission(submission: ContactSubmissionCreate):
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(
+            """INSERT INTO contact_submissions (name, email, phone, subject, message)
+               VALUES (%s, %s, %s, %s, %s) RETURNING id""",
+            (submission.name, submission.email, submission.phone, submission.subject, submission.message)
+        )
+        submission_id = cur.fetchone()[0]
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        # Send acknowledgement email
+        send_email(
+            submission.email,
+            submission.name,
+            f"Thank you for contacting us - Yoganteek Wellness",
+            build_contact_acknowledgement(submission.name, submission.subject)
+        )
+
+        return {"success": True, "submission_id": submission_id, "message": "Contact submission saved successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/contact-submissions")
+def get_contact_submissions():
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("SELECT id, name, email, phone, subject, message, source, created_at FROM contact_submissions ORDER BY created_at DESC")
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        submissions = []
+        for row in rows:
+            submissions.append({
+                "id": row[0], "name": row[1], "email": row[2],
+                "phone": row[3], "subject": row[4], "message": row[5],
+                "source": row[6], "created_at": str(row[7])
+            })
+        return {"submissions": submissions, "count": len(submissions)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
