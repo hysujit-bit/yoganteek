@@ -101,7 +101,7 @@ a{text-decoration:none;color:inherit;}
 .cf-field-error{border-color:#e57373 !important;background:#fff5f5 !important;}
 .cf-error{color:#c62828;font-size:11px;margin-top:4px;display:none;font-weight:500;}
 .cf-error.show{display:block;}
-.cf-submit-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 24px;border:none;border-radius:12px;background:linear-gradient(135deg,#C89B3C 0%,#A07830 100%);color:#fff;font-size:14px;font-weight:600;letter-spacing:.3px;cursor:pointer;box-shadow:0 4px 18px rgba(200,155,60,.3);transition:all .25s;}
+.cf-submit-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 24px;margin-top:20px;border:none;border-radius:12px;background:linear-gradient(135deg,#C89B3C 0%,#A07830 100%);color:#fff;font-size:14px;font-weight:600;letter-spacing:.3px;cursor:pointer;box-shadow:0 4px 18px rgba(200,155,60,.3);transition:all .25s;}
 .cf-submit-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 24px rgba(200,155,60,.4);}
 .cf-submit-btn:disabled{opacity:.7;cursor:not-allowed;}
 .cf-spinner{display:none;animation:spin .7s linear infinite;}
@@ -378,6 +378,12 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
     if(inp&&err){inp.addEventListener('input',function(){clearErr(inp,err);});inp.addEventListener('change',function(){clearErr(inp,err);});}
   });
 
+  function showSuccess(){
+    form.style.display='none';
+    var successEl=document.getElementById('cf-success');
+    if(successEl) successEl.style.display='';
+  }
+
   form.addEventListener('submit',function(e){
     e.preventDefault();var valid=true;
     fields.forEach(function(f){
@@ -390,7 +396,7 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
     var btnText=document.getElementById('cf-btn-text');
     var btnArr=document.getElementById('cf-btn-arrow');
     var spinner=document.getElementById('cf-btn-spinner');
-    btn.disabled=true;btnText.textContent='Sending…';btnArr.style.display='none';spinner.style.display='';
+    btn.disabled=true;btnText.textContent='Sending...';btnArr.style.display='none';spinner.style.display='';
 
     var fd={
       name:document.getElementById('cf-name').value.trim(),
@@ -403,17 +409,18 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
     fetch('https://yoganteek-api.onrender.com/api/contact-submissions',{
       method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(fd)
     })
-    .then(function(r){return r.json();})
+    .then(function(r){
+      console.log('Response status:', r.status);
+      return r.json().catch(function(){ return {}; });
+    })
     .then(function(d){
-      console.log('Contact form submitted:',d);
-      form.style.display='none';
-      document.getElementById('cf-success').style.display='';
+      console.log('Contact form submitted:', d);
+      showSuccess();
     })
     .catch(function(err){
-      console.error('API error, saving locally:',err);
-      localStorage.setItem('yoganteek_contact',JSON.stringify(fd));
-      form.style.display='none';
-      document.getElementById('cf-success').style.display='';
+      console.error('API error, saving locally:', err);
+      localStorage.setItem('yoganteek_contact', JSON.stringify(fd));
+      showSuccess();
     });
   });
 })();

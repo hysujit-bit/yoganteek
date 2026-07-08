@@ -411,9 +411,7 @@
             .btn-group { justify-content: center; }
             .hero-photo { order: -1; }
             .hero-photo .float-badge { display: none; }
-            .programs-grid, .testimonials-row { grid-template-columns: 1fr; }
-            .metrics-row { grid-template-columns: repeat(2, 1fr); }
-            .clients-grid { grid-template-columns: repeat(2, 1fr); }
+            .programs-grid, .testimonials-row, .metrics-row, .clients-grid { grid-template-columns: 1fr; }
             .diff-grid { grid-template-columns: 1fr; }
             .hero-text h1 { font-size: 2.4rem; }
             .section-title { font-size: 1.8rem; }
@@ -884,7 +882,7 @@ tailwind.config={theme:{extend:{colors:{corp:{sage:"#C8B8D4",sagedark:"#5A4A72",
 .corp-spinner{display:none;animation:corp-spin .7s linear infinite;}
 @keyframes corp-spin{to{transform:rotate(360deg);}}
 #corp-error-msg a{color:#5A4A72;text-decoration:underline;}
-@media(max-width:639px){.corp-form-wrapper{padding:20px;}#corp-inquiry-form > div:first-child{grid-template-columns:1fr!important;}}
+@media(max-width:900px){.corp-form-wrapper{padding:20px;}#corp-inquiry-form > div:first-child{grid-template-columns:1fr!important;}input,select,textarea{font-size:16px!important;}}
 </style>
 
 <script>
