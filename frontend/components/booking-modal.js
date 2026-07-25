@@ -141,6 +141,7 @@
 
 /* ── Calendly container ── */
 #bm-calendly-widget { min-height: 600px; height: 600px; }
+#bm-calendly-widget .calendly-inline-widget { min-width: 320px; height: 100%; }
 
 /* ── Mobile tweaks ── */
 @media (max-width: 639px) {
@@ -148,7 +149,8 @@
   #booking-modal-content { padding: 16px 16px 24px; }
   .bm-form-grid { gap: 14px; }
   .bm-input, .bm-select, .bm-textarea { padding: 12px 14px; font-size: 16px; } /* prevent iOS zoom */
-  #bm-calendly-widget { min-height: 500px; height: 500px; }
+  #bm-calendly-widget { min-height: 700px; height: 700px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  #bm-calendly-widget .calendly-inline-widget { min-width: unset; width: 100%; }
 }
   `;
   document.head.appendChild(css);
