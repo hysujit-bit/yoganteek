@@ -97,7 +97,7 @@ def build_lead_acknowledgement(name: str) -> str:
     <div style="font-family:'DM Sans',Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#fafafa;">
       <div style="text-align:center;margin-bottom:24px;">
         <h1 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;color:#2D2A3E;margin:0;">Yoganteek Wellness</h1>
-        <p style="font-size:12px;color:#888;margin-top:4px;">Dr. Jayashree Pattanayak</p>
+        <p style="font-size:12px;color:#888;margin-top:4px;">Dr. Jayashree Pattanaik</p>
       </div>
       <div style="background:#fff;border-radius:16px;padding:32px;border:1px solid rgba(0,0,0,.06);">
         <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;color:#2D2A3E;margin:0 0 12px;">Thank You, {name}!</h2>
@@ -160,7 +160,7 @@ def build_contact_acknowledgement(name: str, subject: str) -> str:
     <div style="font-family:'DM Sans',Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#fafafa;">
       <div style="text-align:center;margin-bottom:24px;">
         <h1 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;color:#2D2A3E;margin:0;">Yoganteek Wellness</h1>
-        <p style="font-size:12px;color:#888;margin-top:4px;">Dr. Jayashree Pattanayak</p>
+        <p style="font-size:12px;color:#888;margin-top:4px;">Dr. Jayashree Pattanaik</p>
       </div>
       <div style="background:#fff;border-radius:16px;padding:32px;border:1px solid rgba(0,0,0,.06);">
         <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;color:#2D2A3E;margin:0 0 12px;">Thank You, {name}!</h2>

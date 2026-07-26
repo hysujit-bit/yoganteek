@@ -75,7 +75,7 @@
 **Trigger:** New lead submits inquiry form  
 **Recipient:** Lead's phone number  
 ```
-🙏 Namaste {{1}}! Thank you for reaching out to Yoganteek Wellness by Dr. Jayashree Pattanayak.
+🙏 Namaste {{1}}! Thank you for reaching out to Yoganteek Wellness by Dr. Jayashree Pattanaik.
 
 We've received your inquiry and will get back to you within 24 hours.
 

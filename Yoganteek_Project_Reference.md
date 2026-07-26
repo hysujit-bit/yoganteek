@@ -1,6 +1,6 @@
 # Yoganteek — Complete Project Reference
 
-> **Client:** Dr. Jayashree Pattanayak  
+> **Client:** Dr. Jayashree Pattanaik  
 > **Brand:** Yoganteek (yoganteek.com)  
 > **Role:** Corporate Wellness Coach & Yoga Physician (PhD)  
 > **Location:** Bannerghatta Road, Bengaluru, Karnataka  
@@ -146,7 +146,7 @@
   - ⚖️ Weight management counseling
   - 💆 Health and wellness coaching
   - 🧘 Expand spiritual knowledge
-- **Guide Section:** "Your guide to better health — Dr. Jayashree Pattanayak" with bio
+- **Guide Section:** "Your guide to better health — Dr. Jayashree Pattanaik" with bio
 - **CTA:** "Begin Your Journey to Wellness"
 
 ### 5.2 About (about.html)
