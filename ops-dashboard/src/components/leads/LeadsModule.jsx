@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { Badge } from '../common/Badge';
 import { Modal } from '../common/Modal';
-import { Search, UserCheck, Calendar, FileText, Filter, CheckCircle2, Clock } from 'lucide-react';
+import { Toast } from '../common/Toast';
+import { Search, UserCheck, Calendar, FileText, Filter, CheckCircle2, Clock, Loader2 } from 'lucide-react';
 
 export const LeadsModule = ({ onNavigate }) => {
   const [leads, setLeads] = useState([]);
@@ -10,6 +11,8 @@ export const LeadsModule = ({ onNavigate }) => {
   const [activeSource, setActiveSource] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [converting, setConverting] = useState(false);
+  const [toast, setToast] = useState(null);
   
   // Convert Modal State
   const [convertModalOpen, setConvertModalOpen] = useState(false);
@@ -78,7 +81,9 @@ export const LeadsModule = ({ onNavigate }) => {
 
   const handleConvertSubmit = async (e) => {
     e.preventDefault();
+    if (converting) return;
     try {
+      setConverting(true);
       await api.createPatient({
         ...convertForm,
         lead_id: selectedLead?.id,
@@ -88,10 +93,12 @@ export const LeadsModule = ({ onNavigate }) => {
         await handleStatusChange(selectedLead, 'converted');
       }
       setConvertModalOpen(false);
-      alert(`Successfully created patient profile for ${convertForm.name}!`);
+      setToast({ message: `Patient profile created for ${convertForm.name}`, type: 'success' });
       if (onNavigate) onNavigate('patients');
     } catch (err) {
-      alert(`Failed to convert lead: ${err.message}`);
+      setToast({ message: err.message || 'Failed to convert lead', type: 'error' });
+    } finally {
+      setConverting(false);
     }
   };
 
@@ -113,10 +120,10 @@ export const LeadsModule = ({ onNavigate }) => {
       setLogSaving(true);
       await api.logConsultation(logLead.id, logForm);
       setLogModalOpen(false);
-      alert(`Consultation logged for ${logLead.name} on ${logForm.session_date}!`);
+      setToast({ message: `Consultation logged for ${logLead.name}`, type: 'success' });
       loadLeads();
     } catch (err) {
-      alert(`Failed to log consultation: ${err.message}`);
+      setToast({ message: err.message || 'Failed to log consultation', type: 'error' });
     } finally {
       setLogSaving(false);
     }
@@ -342,11 +349,18 @@ export const LeadsModule = ({ onNavigate }) => {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
-            <button type="button" onClick={() => setConvertModalOpen(false)} className="btn btn-outline">
+            <button type="button" onClick={() => setConvertModalOpen(false)} className="btn btn-outline" disabled={converting}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
-              Create Patient Profile
+            <button type="submit" className="btn btn-primary" disabled={converting} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              {converting ? (
+                <>
+                  <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                  Creating...
+                </>
+              ) : (
+                'Create Patient Profile'
+              )}
             </button>
           </div>
         </form>
@@ -415,12 +429,21 @@ export const LeadsModule = ({ onNavigate }) => {
             <button type="button" onClick={() => setLogModalOpen(false)} className="btn btn-outline">
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={logSaving}>
-              {logSaving ? 'Saving...' : 'Save Consultation'}
+            <button type="submit" className="btn btn-primary" disabled={logSaving} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              {logSaving ? (
+                <>
+                  <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                  Saving...
+                </>
+              ) : (
+                'Save Consultation'
+              )}
             </button>
           </div>
         </form>
       </Modal>
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 };

@@ -423,3 +423,13 @@ h1, h2, h3, .font-serif {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
 }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes toastSlideIn {
+  from { transform: translateX(120%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
