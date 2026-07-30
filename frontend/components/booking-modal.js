@@ -145,8 +145,10 @@
 
 /* ── Mobile tweaks ── */
 @media (max-width: 639px) {
-  #booking-modal { width: 100%; max-height: 100vh; border-radius: 0; min-height: 100vh; }
-  #booking-modal-content { padding: 16px 16px 24px; }
+  #booking-modal-overlay { align-items: flex-end; }
+  #booking-modal { width: 100%; max-height: 92dvh; max-height: 92vh; border-radius: 20px 20px 0 0; min-height: auto; padding-top: env(safe-area-inset-top, 0); padding-bottom: env(safe-area-inset-bottom, 0); }
+  #booking-modal-content { padding: 12px 16px 24px; }
+  #booking-modal-close { position: sticky; top: 0; margin: 8px 8px 0 0; }
   .bm-form-grid { gap: 14px; }
   .bm-input, .bm-select, .bm-textarea { padding: 12px 14px; font-size: 16px; } /* prevent iOS zoom */
   #bm-calendly-widget { min-height: 700px; height: 700px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
