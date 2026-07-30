@@ -286,17 +286,19 @@
         const el = document.createElement('button');
         el.className = 'cal-day';
         el.textContent = d;
-        const dateObj = new Date(currentYear, currentMonth, d);
-        const dateStr = dateObj.toISOString().split('T')[0];
-        const dayOfWeek = dateObj.getDay();
+        /* Use local date components to avoid timezone offset */
+        const dateStr = currentYear + '-' + String(currentMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+        const dayOfWeek = new Date(currentYear, currentMonth, d).getDay();
 
-        if (dateObj < today || dayOfWeek === 0) {
+        const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+        if (dateStr < todayStr || dayOfWeek === 0) {
           el.classList.add('disabled');
         } else {
           el.onclick = () => selectDate(dateStr, el);
         }
 
-        if (dateObj.toDateString() === today.toDateString()) {
+        if (dateStr === todayStr) {
           el.classList.add('today');
         }
         if (dateStr === selectedDate) {
@@ -322,9 +324,11 @@
 
       /* Parse date directly to avoid timezone issues */
       const [year, month, day] = dateStr.split('-').map(Number);
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const weekdayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
       const dateObj = new Date(year, month - 1, day);
       const display = document.getElementById('selected-date-display');
-      display.textContent = dateObj.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Kolkata' });
+      display.textContent = weekdayNames[dateObj.getDay()] + ', ' + day + ' ' + months[month - 1] + ' ' + year;
 
       document.getElementById('slots-section').style.display = 'block';
       document.getElementById('slots-grid').innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading available times...</p></div>';
@@ -348,12 +352,12 @@
 
       /* Check if this date is today (IST) */
       const now = new Date();
-      const istOffset = 5.5 * 60 * 60 * 1000;
-      const istNow = new Date(now.getTime() + istOffset);
-      const todayStr = istNow.toISOString().split('T')[0];
-      const isToday = dateStr === todayStr;
+      /* Get IST time properly using toLocaleString */
+      const istNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
       const currentHour = istNow.getHours();
       const currentMinute = istNow.getMinutes();
+      const todayIST = istNow.getFullYear() + '-' + String(istNow.getMonth() + 1).padStart(2, '0') + '-' + String(istNow.getDate()).padStart(2, '0');
+      const isToday = dateStr === todayIST;
 
       slots.forEach(slot => {
         const btn = document.createElement('button');
@@ -442,8 +446,10 @@
         const h12 = hr % 12 || 12;
         /* Parse date directly to avoid timezone issues */
         const [year, month, day] = selectedDate.split('-').map(Number);
+        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
         const dateObj = new Date(year, month - 1, day);
-        const dateStr = dateObj.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Kolkata' });
+        const dateStr = days[dateObj.getDay()] + ', ' + day + ' ' + months[month - 1] + ' ' + year;
 
         document.getElementById('c-name').textContent = payload.patient_name;
         document.getElementById('c-date').textContent = dateStr;
