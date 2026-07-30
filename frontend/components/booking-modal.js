@@ -1,8 +1,23 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Booking Modal – Collects details → Redirects to book-consultation.html
+   Booking Modal – form → Calendly flow (popup version of Yoganteek_ad_enquiry)
    ═══════════════════════════════════════════════════════════════════════════ */
 
 (function () {
+  /* ── Load Calendly assets if not already present ───────────────────── */
+  if (!document.querySelector('link[href*="calendly.com/assets/external/widget.css"]')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://assets.calendly.com/assets/external/widget.css';
+    document.head.appendChild(link);
+  }
+  if (!document.querySelector('script[src*="calendly.com/assets/external/widget.js"]')) {
+    const script = document.createElement('script');
+    script.src = 'https://assets.calendly.com/assets/external/widget.js';
+    script.type = 'text/javascript';
+    script.async = true;
+    document.head.appendChild(script);
+  }
+
   /* ── Inject styles ─────────────────────────────────────────────────── */
   const css = document.createElement('style');
   css.textContent = `
@@ -52,6 +67,22 @@
 
 /* ── Inner content ── */
 #booking-modal-content { padding: 28px 28px 32px; }
+
+/* ── Step indicator ── */
+.bm-step-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; }
+.bm-step-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #5A4A72; color: #fff; font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.bm-step-dash { color: #ccc; }
+.bm-step-label { font-size: 14px; font-weight: 600; color: #5A4A72; }
+.bm-step-sub { text-align: center; font-size: 11px; color: #888; margin-bottom: 12px; }
+.bm-back-btn {
+  display: block; margin: 0 auto 12px; background: none; border: none;
+  font-size: 12px; color: #5A4A72; text-decoration: underline; cursor: pointer;
+}
+.bm-back-btn:hover { color: #4a3c62; }
 
 /* ── Form grid ── */
 .bm-form-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
@@ -108,6 +139,10 @@
 
 .bm-privacy { text-align: center; font-size: 11px; color: #999; margin-top: 12px; }
 
+/* ── Calendly container ── */
+#bm-calendly-widget { min-height: 600px; height: 600px; }
+#bm-calendly-widget .calendly-inline-widget { min-width: 320px; height: 100%; }
+
 /* ── Mobile tweaks ── */
 @media (max-width: 639px) {
   #booking-modal-overlay { align-items: flex-end; }
@@ -116,6 +151,8 @@
   #booking-modal-close { position: sticky; top: 0; margin: 8px 8px 0 0; }
   .bm-form-grid { gap: 14px; }
   .bm-input, .bm-select, .bm-textarea { padding: 12px 14px; font-size: 16px; } /* prevent iOS zoom */
+  #bm-calendly-widget { min-height: 700px; height: 700px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  #bm-calendly-widget .calendly-inline-widget { min-width: unset; width: 100%; }
 }
   `;
   document.head.appendChild(css);
@@ -131,7 +168,8 @@
       </button>
       <div id="booking-modal-content">
 
-        <div id="bm-form-section">
+        <!-- Step 1 -->
+        <div id="bm-step-1">
           <div style="text-align:center;margin-bottom:18px;">
             <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#2D2A3E;margin-bottom:4px;">Begin Your Wellness Journey</h3>
             <p style="font-size:12px;color:#888;">Fill in your details below to get started</p>
@@ -158,30 +196,55 @@
                 <label class="bm-label" for="bm-form-goal">Primary Health Goal <span class="req">*</span></label>
                 <select id="bm-form-goal" class="bm-select">
                   <option value="">— Select your goal —</option>
-                  <option value="Stress, Sleep & Anxiety">Stress, Sleep &amp; Anxiety</option>
-                  <option value="Focus & Energy">Focus &amp; Energy</option>
-                  <option value="Weight Management">Weight Management</option>
-                  <option value="Pain Relief">Pain Relief</option>
-                  <option value="Hormonal Balance">Hormonal Balance</option>
-                  <option value="General Wellness">General Wellness</option>
+                  <option value="stress">Stress, Sleep &amp; Anxiety</option>
+                  <option value="energy">Focus &amp; Energy</option>
+                  <option value="weight">Weight Management</option>
+                  <option value="pain">Pain Relief</option>
+                  <option value="hormonal">Hormonal Balance</option>
+                  <option value="general">General Wellness</option>
                 </select>
                 <p class="bm-error-msg" id="bm-err-goal">Please select a health goal.</p>
               </div>
+              <div class="bm-field-group">
+                <label class="bm-label" for="bm-form-concern">Select Your Concern</label>
+                <select id="bm-form-concern" class="bm-select">
+                  <option value="">— Select a concern —</option>
+                  <option value="fatty-liver">Fatty Liver Issue</option>
+                  <option value="weight">Weight Management</option>
+                  <option value="pcos-pcod">Gynecology Disorder (PCOS &amp; PCOD)</option>
+                  <option value="anxiety-stress">Anxiety &amp; Stress Management</option>
+                  <option value="diabetes">Diabetes &amp; Sugar Control</option>
+                  <option value="sleep">Sleeping Disorder</option>
+                </select>
+              </div>
               <div class="bm-field-group full-span">
-                <label class="bm-label" for="bm-form-message">Additional Notes (optional)</label>
-                <textarea id="bm-form-message" rows="3" placeholder="Any specific concerns or questions..." class="bm-textarea"></textarea>
+                <label class="bm-label" for="bm-form-message">Please Describe the Issues</label>
+                <textarea id="bm-form-message" rows="3" placeholder="Describe your health concerns..." class="bm-textarea"></textarea>
               </div>
             </div>
 
             <div style="margin-top:22px;">
               <button type="submit" class="bm-submit-btn" id="bm-form-submit-btn">
-                <span id="bm-btn-text">Continue to Book</span>
+                <span id="bm-btn-text">Schedule My Consultation</span>
                 <span id="bm-btn-arrow">&rarr;</span>
                 <svg id="bm-btn-spinner" class="bm-spinner" width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity=".25"/><path d="M4 12a8 8 0 018-8v8H4z" fill="currentColor" opacity=".75"/></svg>
               </button>
               <p class="bm-privacy">&#128274; Your information is 100% private. No spam, ever.</p>
             </div>
           </form>
+        </div>
+
+        <!-- Step 2 -->
+        <div id="bm-step-2" style="display:none;">
+          <div class="bm-step-row">
+            <span class="bm-step-num">1</span>
+            <span class="bm-step-dash">&mdash;</span>
+            <span class="bm-step-num">2</span>
+            <span class="bm-step-label" style="margin-left:4px;">Schedule Your Slot</span>
+          </div>
+          <p class="bm-step-sub">Pick a date &amp; time that works best for you</p>
+          <button type="button" class="bm-back-btn" id="bm-back-to-form">&larr; Go back to edit details</button>
+          <div id="bm-calendly-widget"></div>
         </div>
 
       </div>
@@ -193,7 +256,10 @@
   const backdrop   = document.getElementById('booking-modal-backdrop');
   const modalEl    = document.getElementById('booking-modal');
   const closeBtn   = document.getElementById('booking-modal-close');
+  const step1      = document.getElementById('bm-step-1');
+  const step2      = document.getElementById('bm-step-2');
   const form       = document.getElementById('bm-consultation-form');
+  const backBtn    = document.getElementById('bm-back-to-form');
 
   /* ── Open / Close ──────────────────────────────────────────────────── */
   function openModal() {
@@ -240,13 +306,15 @@
 
   /* ── Reset form state ──────────────────────────────────────────────── */
   function resetForm() {
+    step1.style.display = '';
+    step2.style.display = 'none';
     form.reset();
     const btn     = document.getElementById('bm-form-submit-btn');
     const btnText = document.getElementById('bm-btn-text');
     const btnArr  = document.getElementById('bm-btn-arrow');
     const spinner = document.getElementById('bm-btn-spinner');
     btn.disabled = false;
-    btnText.textContent = 'Continue to Book';
+    btnText.textContent = 'Schedule My Consultation';
     btnArr.style.display = '';
     spinner.style.display = 'none';
     /* clear errors */
@@ -254,7 +322,7 @@
     form.querySelectorAll('.bm-error-msg.show').forEach(el => el.classList.remove('show'));
   }
 
-  /* ── Submit → Redirect to booking page ─────────────────────────────── */
+  /* ── Submit ────────────────────────────────────────────────────────── */
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     let valid = true;
@@ -277,25 +345,27 @@
 
     if (!valid) return;
 
-    /* Show loading state */
+    /* loading state */
     const btn     = document.getElementById('bm-form-submit-btn');
     const btnText = document.getElementById('bm-btn-text');
     const btnArr  = document.getElementById('bm-btn-arrow');
     const spinner = document.getElementById('bm-btn-spinner');
     btn.disabled = true;
-    btnText.textContent = 'Redirecting...';
+    btnText.textContent = 'Submitting…';
     btnArr.style.display = 'none';
     spinner.style.display = '';
 
-    /* Save lead to backend (fire-and-forget) */
+    /* collect data */
     const fd = {
       name:       nameEl.value.trim(),
       email:      emailEl.value.trim(),
       phone:      phoneEl.value.trim(),
       health_goal: goalEl.value,
+      concern:    document.getElementById('bm-form-concern').value,
       message:    document.getElementById('bm-form-message').value.trim()
     };
 
+    /* API call (fire-and-forget) */
     fetch('https://yoganteek-api.onrender.com/api/leads', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -303,18 +373,39 @@
     })
     .then(r => r.json())
     .then(d => console.log('Lead saved:', d))
-    .catch(err => { console.error('API error:', err); });
+    .catch(err => { console.error('API error, saving locally:', err); localStorage.setItem('yoganteek_lead', JSON.stringify(fd)); });
 
-    /* Redirect to booking page with pre-filled data */
-    const params = new URLSearchParams({
-      name:  fd.name,
-      email: fd.email,
-      phone: fd.phone,
-      goal:  fd.health_goal
-    });
-
+    /* transition to Calendly */
     setTimeout(() => {
-      window.location.href = 'book-consultation.html?' + params.toString();
-    }, 500);
+      step1.style.display = 'none';
+      step2.style.display = '';
+
+      /* check if Calendly is loaded, wait if not */
+      function initCalendly() {
+        if (typeof Calendly !== 'undefined' && Calendly.initInlineWidget) {
+          Calendly.initInlineWidget({
+            url: 'https://calendly.com/yoganteekwellness/30min?email=' + encodeURIComponent(fd.email) + '&name=' + encodeURIComponent(fd.name),
+            parentElement: document.getElementById('bm-calendly-widget')
+          });
+        } else {
+          setTimeout(initCalendly, 200);
+        }
+      }
+      initCalendly();
+    }, 800);
+  });
+
+  /* ── Back to form ──────────────────────────────────────────────────── */
+  backBtn.addEventListener('click', () => {
+    step2.style.display = 'none';
+    step1.style.display = '';
+    const btn     = document.getElementById('bm-form-submit-btn');
+    const btnText = document.getElementById('bm-btn-text');
+    const btnArr  = document.getElementById('bm-btn-arrow');
+    const spinner = document.getElementById('bm-btn-spinner');
+    btn.disabled = false;
+    btnText.textContent = 'Schedule My Consultation';
+    btnArr.style.display = '';
+    spinner.style.display = 'none';
   });
 })();

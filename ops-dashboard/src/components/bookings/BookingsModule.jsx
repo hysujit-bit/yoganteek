@@ -7,8 +7,10 @@ import { Calendar, Clock, User, Phone, Mail, Edit2, XCircle, CheckCircle2, Video
 export const BookingsModule = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [activeTab, setActiveTab] = useState('upcoming');
   const [error, setError] = useState(null);
+  const [syncMessage, setSyncMessage] = useState(null);
 
   // Edit Modal State
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -36,6 +38,23 @@ export const BookingsModule = () => {
       setBookings([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const syncCalendar = async () => {
+    try {
+      setSyncing(true);
+      setSyncMessage(null);
+      const result = await api.syncGoogleCalendar(30);
+      setSyncMessage(`Synced ${result.count || 0} event(s) from Google Calendar`);
+      await loadBookings();
+      setTimeout(() => setSyncMessage(null), 5000);
+    } catch (err) {
+      console.error('Failed to sync calendar', err);
+      setSyncMessage('Sync failed. Please try again.');
+      setTimeout(() => setSyncMessage(null), 5000);
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -163,6 +182,15 @@ export const BookingsModule = () => {
           <button onClick={loadBookings} className="btn btn-outline btn-sm" style={{ padding: '0.35rem 0.65rem' }}>
             <RefreshCw size={14} className={loading ? 'spin' : ''} />
           </button>
+          <button
+            onClick={syncCalendar}
+            disabled={syncing}
+            className="btn btn-primary btn-sm"
+            style={{ padding: '0.4rem 0.85rem', fontSize: '0.82rem', gap: '6px' }}
+          >
+            <Calendar size={14} className={syncing ? 'spin' : ''} />
+            {syncing ? 'Syncing...' : 'Sync Calendar'}
+          </button>
         </div>
       </div>
 
@@ -172,6 +200,23 @@ export const BookingsModule = () => {
           <AlertCircle size={18} color="#D32F2F" />
           <span style={{ fontSize: '0.85rem', color: '#D32F2F' }}>{error}</span>
           <button onClick={loadBookings} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#D32F2F', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>Retry</button>
+        </div>
+      )}
+
+      {/* Sync Message */}
+      {syncMessage && (
+        <div style={{
+          backgroundColor: syncMessage.includes('failed') ? '#FFEBEE' : '#E8F5E9',
+          border: `1px solid ${syncMessage.includes('failed') ? '#FFCDD2' : '#C8E6C9'}`,
+          borderRadius: 'var(--radius-sm)',
+          padding: '0.85rem 1.25rem',
+          marginBottom: '1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.65rem'
+        }}>
+          <CheckCircle2 size={18} color={syncMessage.includes('failed') ? '#D32F2F' : '#2E7D32'} />
+          <span style={{ fontSize: '0.85rem', color: syncMessage.includes('failed') ? '#D32F2F' : '#2E7D32' }}>{syncMessage}</span>
         </div>
       )}
 

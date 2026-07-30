@@ -81,6 +81,10 @@ export const api = {
   updateBooking: (id, data) => apiClient.put(`/api/bookings/${id}`, data),
   cancelBooking: (id) => apiClient.delete(`/api/bookings/${id}`),
   getAvailability: (date) => apiClient.get(`/api/availability?date=${date}`),
+
+  // Google Calendar Sync
+  syncGoogleCalendar: (daysAhead = 30) => apiClient.get(`/api/google-calendar/sync?days_ahead=${daysAhead}`),
+  getGoogleCalendarStatus: () => apiClient.get('/api/google-calendar/status'),
 };
 
 export default api;
