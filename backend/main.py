@@ -626,7 +626,7 @@ def get_google_calendar_service():
         creds_info = json.loads(GOOGLE_SERVICE_ACCOUNT_JSON)
         creds = service_account.Credentials.from_service_account_info(
             creds_info,
-            scopes=['https://www.googleapis.com/auth/calendar.readonly']
+            scopes=['https://www.googleapis.com/auth/calendar']
         )
         service = build('calendar', 'v3', credentials=creds)
         return service
@@ -693,6 +693,69 @@ def fetch_google_calendar_events(days_ahead: int = 7):
     except Exception as e:
         print(f"[GOOGLE CAL] Failed to fetch events: {e}")
         return []
+
+
+def create_google_calendar_event(patient_name, patient_email, booking_date, booking_time, duration_minutes=30):
+    """
+    Create a Google Calendar event with Google Meet link.
+    Returns dict with event_id and meeting_link, or None on failure.
+    """
+    service = get_google_calendar_service()
+    if not service:
+        print("[GOOGLE CAL] Cannot create event — service not available")
+        return None
+
+    try:
+        # Parse date and time into datetime (IST)
+        from zoneinfo import ZoneInfo
+        ist = ZoneInfo('Asia/Kolkata')
+        start_dt = datetime.strptime(f"{booking_date} {booking_time}", "%Y-%m-%d %H:%M").replace(tzinfo=ist)
+        end_dt = start_dt + timedelta(minutes=duration_minutes)
+
+        event_body = {
+            'summary': f'Consultation — {patient_name}',
+            'description': f'Free consultation booking for {patient_name}\nEmail: {patient_email}',
+            'start': {
+                'dateTime': start_dt.isoformat(),
+                'timeZone': 'Asia/Kolkata',
+            },
+            'end': {
+                'dateTime': end_dt.isoformat(),
+                'timeZone': 'Asia/Kolkata',
+            },
+            'attendees': [
+                {'email': patient_email},
+            ],
+            'conferenceData': {
+                'createRequest': {
+                    'requestId': f'booking-{booking_date}-{booking_time}-{patient_name.replace(" ", "-")}',
+                    'conferenceSolutionKey': {'type': 'hangoutsMeet'},
+                }
+            },
+        }
+
+        event = service.events().insert(
+            calendarId=GOOGLE_CALENDAR_ID,
+            body=event_body,
+            conferenceDataVersion=1,
+        ).execute()
+
+        event_id = event.get('id', '')
+        meeting_link = event.get('hangoutLink', '')
+        if not meeting_link:
+            conference = event.get('conferenceData', {})
+            entry_points = conference.get('entryPoints', [])
+            for ep in entry_points:
+                if ep.get('entryPointType') == 'video':
+                    meeting_link = ep.get('uri', '')
+                    break
+
+        print(f"[GOOGLE CAL] Event created: {event_id} | Meeting: {meeting_link}")
+        return {'event_id': event_id, 'meeting_link': meeting_link}
+
+    except Exception as e:
+        print(f"[GOOGLE CAL] Failed to create event: {e}")
+        return None
 
 
 # ─────────────────────────────────────────────
@@ -1781,8 +1844,26 @@ def create_booking(booking: BookingCreate):
         """, (booking.patient_name, booking.patient_email, booking.patient_phone,
               booking.health_goal, f"Auto-created from booking #{booking_id}"))
 
+        # Create Google Calendar event with Meet link
+        cal_result = create_google_calendar_event(
+            patient_name=booking.patient_name,
+            patient_email=booking.patient_email,
+            booking_date=booking.booking_date,
+            booking_time=booking.booking_time,
+        )
+        if cal_result:
+            cur.execute("""
+                UPDATE bookings
+                SET calendar_event_id = %s, meeting_link = %s
+                WHERE id = %s
+            """, (cal_result['event_id'], cal_result['meeting_link'], booking_id))
+            print(f"[BOOKING #{booking_id}] Google Calendar event created: {cal_result['event_id']}")
+        else:
+            print(f"[BOOKING #{booking_id}] Google Calendar event creation failed or skipped")
+
         conn.commit(); cur.close(); conn.close()
         return {"success": True, "booking_id": booking_id,
+                "meeting_link": cal_result['meeting_link'] if cal_result else None,
                 "message": f"Booking confirmed for {booking.booking_date} at {booking.booking_time}"}
     except HTTPException:
         raise

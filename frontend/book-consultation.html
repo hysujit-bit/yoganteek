@@ -223,6 +223,10 @@
               <span class="confirm-label">Duration</span>
               <span class="confirm-value">30 minutes</span>
             </div>
+            <div class="confirm-row" id="c-meet-row" style="display:none;">
+              <span class="confirm-label">Google Meet</span>
+              <span class="confirm-value"><a id="c-meet-link" href="#" target="_blank" style="color:var(--forest);text-decoration:underline;"></a></span>
+            </div>
           </div>
 
           <p style="font-size:.85rem;color:var(--text-body);margin-top:16px;">
@@ -472,6 +476,13 @@
         document.getElementById('c-date').textContent = dateStr;
         document.getElementById('c-time').textContent = h12 + ':' + min + ' ' + ampm + ' IST';
         document.getElementById('confirm-msg').textContent = 'Your free consultation is confirmed.';
+
+        /* Show Google Meet link if available */
+        if (data.meeting_link) {
+          document.getElementById('c-meet-row').style.display = 'flex';
+          document.getElementById('c-meet-link').href = data.meeting_link;
+          document.getElementById('c-meet-link').textContent = data.meeting_link;
+        }
 
         goToStep(3);
       } catch (err) {

@@ -79,6 +79,13 @@
             <div class="detail-value" id="booking-type">Free Consultation</div>
           </div>
         </div>
+        <div class="detail-row" id="meet-link-row" style="display:none;">
+          <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          <div>
+            <div class="detail-label">Google Meet Link</div>
+            <div class="detail-value"><a id="meet-link" href="#" target="_blank" style="color:var(--forest);text-decoration:underline;word-break:break-all;"></a></div>
+          </div>
+        </div>
       </div>
 
       <a href="index.html" class="confirm-btn">
@@ -100,6 +107,7 @@
       const name  = params.get('name') || 'Guest';
       const date  = params.get('date') || '';
       const time  = params.get('time') || '';
+      const meet  = params.get('meet') || '';
 
       document.getElementById('visitor-name').textContent = name.split(' ')[0] + '!';
 
@@ -120,6 +128,12 @@
         const ampm = hr >= 12 ? 'PM' : 'AM';
         const h12 = hr % 12 || 12;
         document.getElementById('booking-time').textContent = h12 + ':' + m + ' ' + ampm + ' IST';
+      }
+
+      if (meet) {
+        document.getElementById('meet-link-row').style.display = 'flex';
+        document.getElementById('meet-link').href = meet;
+        document.getElementById('meet-link').textContent = meet;
       }
     })();
   </script>
