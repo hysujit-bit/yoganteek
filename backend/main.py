@@ -706,21 +706,22 @@ def create_google_calendar_event(patient_name, patient_email, booking_date, book
         return None
 
     try:
-        # Parse date and time into datetime (IST)
-        from zoneinfo import ZoneInfo
-        ist = ZoneInfo('Asia/Kolkata')
-        start_dt = datetime.strptime(f"{booking_date} {booking_time}", "%Y-%m-%d %H:%M").replace(tzinfo=ist)
+        # Parse date and time into datetime (IST = UTC+5:30)
+        start_dt = datetime.strptime(f"{booking_date} {booking_time}", "%Y-%m-%d %H:%M")
         end_dt = start_dt + timedelta(minutes=duration_minutes)
+        # Format as ISO with IST offset for Google Calendar API
+        start_iso = start_dt.strftime("%Y-%m-%dT%H:%M:%S+05:30")
+        end_iso = end_dt.strftime("%Y-%m-%dT%H:%M:%S+05:30")
 
         event_body = {
-            'summary': f'Consultation — {patient_name}',
+            'summary': f'Consultation - {patient_name}',
             'description': f'Free consultation booking for {patient_name}\nEmail: {patient_email}',
             'start': {
-                'dateTime': start_dt.isoformat(),
+                'dateTime': start_iso,
                 'timeZone': 'Asia/Kolkata',
             },
             'end': {
-                'dateTime': end_dt.isoformat(),
+                'dateTime': end_iso,
                 'timeZone': 'Asia/Kolkata',
             },
             'attendees': [
