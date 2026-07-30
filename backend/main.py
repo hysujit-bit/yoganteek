@@ -2415,3 +2415,77 @@ def root():
             "ops_google_calendar": ["/api/google-calendar/sync", "/api/google-calendar/status"]
         }
     }
+
+
+@app.get("/api/google-calendar/test-create")
+def test_create_calendar_event():
+    """Debug endpoint to test Google Calendar event creation directly."""
+    results = {"steps": []}
+
+    # Step 1: Check service account JSON
+    results["steps"].append({
+        "step": "check_env",
+        "has_json": bool(GOOGLE_SERVICE_ACCOUNT_JSON),
+        "json_length": len(GOOGLE_SERVICE_ACCOUNT_JSON) if GOOGLE_SERVICE_ACCOUNT_JSON else 0,
+    })
+
+    # Step 2: Build service
+    service = get_google_calendar_service()
+    results["steps"].append({
+        "step": "build_service",
+        "success": service is not None,
+    })
+    if not service:
+        results["error"] = "Failed to build Google Calendar service"
+        return results
+
+    # Step 3: Try to create a test event
+    try:
+        from datetime import datetime, timedelta
+        now = datetime(2026, 7, 31, 15, 0)
+        end = now + timedelta(minutes=30)
+        start_iso = now.strftime("%Y-%m-%dT%H:%M:%S+05:30")
+        end_iso = end.strftime("%Y-%m-%dT%H:%M:%S+05:30")
+
+        event_body = {
+            'summary': 'Test Event - Debug',
+            'description': 'Debug test event',
+            'start': {'dateTime': start_iso, 'timeZone': 'Asia/Kolkata'},
+            'end': {'dateTime': end_iso, 'timeZone': 'Asia/Kolkata'},
+            'conferenceData': {
+                'createRequest': {
+                    'requestId': 'debug-test-123',
+                    'conferenceSolutionKey': {'type': 'hangoutsMeet'},
+                }
+            },
+        }
+
+        event = service.events().insert(
+            calendarId=GOOGLE_CALENDAR_ID,
+            body=event_body,
+            conferenceDataVersion=1,
+        ).execute()
+
+        results["steps"].append({
+            "step": "create_event",
+            "success": True,
+            "event_id": event.get('id'),
+            "hangout_link": event.get('hangoutLink', ''),
+        })
+
+        # Delete the test event
+        service.events().delete(
+            calendarId=GOOGLE_CALENDAR_ID,
+            eventId=event['id'],
+        ).execute()
+        results["steps"].append({"step": "cleanup", "deleted": True})
+
+    except Exception as e:
+        results["steps"].append({
+            "step": "create_event",
+            "success": False,
+            "error": str(e),
+            "error_type": type(e).__name__,
+        })
+
+    return results
