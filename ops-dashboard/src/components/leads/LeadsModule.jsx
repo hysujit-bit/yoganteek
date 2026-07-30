@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import api from '../../services/api';
+import { useSortableData } from '../../hooks/useSortableData';
 import { Badge } from '../common/Badge';
 import { Modal } from '../common/Modal';
 import { Toast } from '../common/Toast';
-import { Search, UserCheck, Calendar, FileText, Filter, CheckCircle2, Clock, Loader2 } from 'lucide-react';
+import { Search, UserCheck, Calendar, CheckCircle2, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
 
 export const LeadsModule = ({ onNavigate }) => {
   const [leads, setLeads] = useState([]);
@@ -13,47 +14,63 @@ export const LeadsModule = ({ onNavigate }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [converting, setConverting] = useState(false);
   const [toast, setToast] = useState(null);
-  
-  // Convert Modal State
+  const [newLeadIds, setNewLeadIds] = useState(new Set());
+  const prevLeadIdsRef = useRef(new Set());
+  const mountedRef = useRef(true);
+
   const [convertModalOpen, setConvertModalOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
   const [convertForm, setConvertForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    health_goals: '',
-    medical_history: '',
+    name: '', email: '', phone: '', health_goals: '', medical_history: '',
     coordinator: 'Dr. Jayashree Pattanaik',
   });
 
-  // Log Consultation Modal State
   const [logModalOpen, setLogModalOpen] = useState(false);
   const [logLead, setLogLead] = useState(null);
   const [logForm, setLogForm] = useState({
     session_date: new Date().toISOString().split('T')[0],
-    session_time: '10:00',
-    meeting_link: '',
-    session_type: 'Free Consultation',
+    session_time: '10:00', meeting_link: '', session_type: 'Free Consultation',
   });
   const [logSaving, setLogSaving] = useState(false);
 
-  const loadLeads = async () => {
+  const loadLeads = useCallback(async (isPoll = false) => {
     try {
-      setLoading(true);
+      if (!isPoll) setLoading(true);
       const data = await api.getLeads();
       const list = Array.isArray(data) ? data : data.leads || [];
+
+      if (isPoll && mountedRef.current) {
+        const currentIds = new Set(list.map((l) => `${l.type}-${l.id}`));
+        const prevIds = prevLeadIdsRef.current;
+        if (prevIds.size > 0) {
+          const added = [...currentIds].filter((id) => !prevIds.has(id));
+          if (added.length > 0) {
+            const newLeads = list.filter((l) => added.includes(`${l.type}-${l.id}`));
+            const names = newLeads.map((l) => l.name).join(', ');
+            setToast({ message: `New lead${added.length > 1 ? 's' : ''}: ${names}`, type: 'success' });
+            setNewLeadIds((prev) => new Set([...prev, ...added]));
+            setTimeout(() => setNewLeadIds(new Set()), 8000);
+          }
+        }
+        prevLeadIdsRef.current = currentIds;
+      }
+
       setLeads(list);
+      if (!isPoll) prevLeadIdsRef.current = new Set(list.map((l) => `${l.type}-${l.id}`));
     } catch (err) {
       console.error('Failed to load leads', err);
-      setLeads([]);
+      if (!isPoll) setLeads([]);
     } finally {
-      setLoading(false);
+      if (!isPoll) setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    loadLeads();
-  }, []);
+    mountedRef.current = true;
+    loadLeads(false);
+    const interval = setInterval(() => loadLeads(true), 60000);
+    return () => { mountedRef.current = false; clearInterval(interval); };
+  }, [loadLeads]);
 
   const handleStatusChange = async (lead, newStatus) => {
     try {
@@ -69,11 +86,8 @@ export const LeadsModule = ({ onNavigate }) => {
   const openConvertModal = (lead) => {
     setSelectedLead(lead);
     setConvertForm({
-      name: lead.name || '',
-      email: lead.email || '',
-      phone: lead.phone || '',
-      health_goals: lead.notes || lead.service_interest || '',
-      medical_history: '',
+      name: lead.name || '', email: lead.email || '', phone: lead.phone || '',
+      health_goals: lead.notes || lead.service_interest || '', medical_history: '',
       coordinator: lead.coordinator || 'Dr. Jayashree Pattanaik',
     });
     setConvertModalOpen(true);
@@ -85,13 +99,10 @@ export const LeadsModule = ({ onNavigate }) => {
     try {
       setConverting(true);
       await api.createPatient({
-        ...convertForm,
-        lead_id: selectedLead?.id,
+        ...convertForm, lead_id: selectedLead?.id,
         source: selectedLead?.source || 'Lead Conversion',
       });
-      if (selectedLead) {
-        await handleStatusChange(selectedLead, 'converted');
-      }
+      if (selectedLead) await handleStatusChange(selectedLead, 'converted');
       setConvertModalOpen(false);
       setToast({ message: `Patient profile created for ${convertForm.name}`, type: 'success' });
       if (onNavigate) onNavigate('patients');
@@ -106,9 +117,7 @@ export const LeadsModule = ({ onNavigate }) => {
     setLogLead(lead);
     setLogForm({
       session_date: new Date().toISOString().split('T')[0],
-      session_time: '10:00',
-      meeting_link: '',
-      session_type: 'Free Consultation',
+      session_time: '10:00', meeting_link: '', session_type: 'Free Consultation',
     });
     setLogModalOpen(true);
   };
@@ -139,27 +148,37 @@ export const LeadsModule = ({ onNavigate }) => {
     return matchesSource && matchesStatus && matchesSearch;
   });
 
+  const { sortedItems, requestSort, sortConfig } = useSortableData(filteredLeads, { key: 'created_at', direction: 'desc' });
+
+  const SortIcon = ({ columnKey }) => {
+    if (!sortConfig || sortConfig.key !== columnKey) return null;
+    return sortConfig.direction === 'asc'
+      ? <ArrowUp size={13} style={{ marginLeft: '3px' }} />
+      : <ArrowDown size={13} style={{ marginLeft: '3px' }} />;
+  };
+
+  const thStyle = (key) => ({
+    cursor: 'pointer',
+    userSelect: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '2px',
+  });
+
   return (
     <div>
-      {/* Top Filter Bar */}
       <div className="card" style={{ marginBottom: '1.5rem', padding: '1rem 1.25rem' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between' }}>
-          {/* Source Tabs */}
           <div style={{ display: 'flex', gap: '0.4rem', background: 'var(--cream-bg)', padding: '3px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)' }}>
             {['all', 'lead', 'contact', 'corporate'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveSource(tab)}
                 style={{
-                  padding: '0.4rem 0.85rem',
-                  border: 'none',
-                  borderRadius: 'var(--radius-sm)',
+                  padding: '0.4rem 0.85rem', border: 'none', borderRadius: 'var(--radius-sm)',
                   backgroundColor: activeSource === tab ? 'var(--forest-dark)' : 'transparent',
                   color: activeSource === tab ? '#FFF' : 'var(--text-main)',
-                  fontWeight: activeSource === tab ? 600 : 400,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                  textTransform: 'capitalize',
+                  fontWeight: activeSource === tab ? 600 : 400, fontSize: '0.82rem', cursor: 'pointer', textTransform: 'capitalize',
                 }}
               >
                 {tab === 'all' ? 'All Sources' : tab === 'lead' ? 'Website Leads' : tab === 'contact' ? 'Ad Enquiries' : 'Corporate'}
@@ -167,24 +186,16 @@ export const LeadsModule = ({ onNavigate }) => {
             ))}
           </div>
 
-          {/* Search & Status Filter */}
           <div style={{ display: 'flex', gap: '0.75rem', flex: 1, maxWidth: '480px' }}>
             <div style={{ position: 'relative', flex: 1 }}>
               <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input
-                type="text"
-                className="form-input"
-                placeholder="Search lead name, email or phone..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ paddingLeft: '2.2rem' }}
+                type="text" className="form-input" placeholder="Search lead name, email or phone..."
+                value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ paddingLeft: '2.2rem' }}
               />
             </div>
             <select
-              className="form-select"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              style={{ width: '150px' }}
+              className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ width: '150px' }}
             >
               <option value="all">All Statuses</option>
               <option value="new">New</option>
@@ -197,16 +208,15 @@ export const LeadsModule = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* Leads Table */}
       <div className="table-container">
         <table className="data-table">
           <thead>
             <tr>
-              <th>Lead Name</th>
-              <th>Source</th>
+              <th onClick={() => requestSort('name')} style={thStyle('name')}>Lead Name<SortIcon columnKey="name" /></th>
+              <th onClick={() => requestSort('type')} style={thStyle('type')}>Source<SortIcon columnKey="type" /></th>
               <th>Contact Info</th>
-              <th>Date</th>
-              <th>Status</th>
+              <th onClick={() => requestSort('created_at')} style={thStyle('created_at')}>Date<SortIcon columnKey="created_at" /></th>
+              <th onClick={() => requestSort('status')} style={thStyle('status')}>Status<SortIcon columnKey="status" /></th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -215,80 +225,81 @@ export const LeadsModule = ({ onNavigate }) => {
               <tr>
                 <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>Loading enquiries...</td>
               </tr>
-            ) : filteredLeads.length === 0 ? (
+            ) : sortedItems.length === 0 ? (
               <tr>
                 <td colSpan="6" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
                   No matching leads found.
                 </td>
               </tr>
             ) : (
-              filteredLeads.map((lead) => (
-                <tr key={`${lead.type}-${lead.id}`}>
-                  <td>
-                    <div style={{ fontWeight: 600, color: 'var(--forest-dark)' }}>{lead.name}</div>
-                    {lead.notes && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>{lead.notes}</div>}
-                  </td>
-                  <td>
-                    <Badge variant={lead.type === 'corporate' ? 'blue' : lead.type === 'contact' ? 'amber' : 'green'}>
-                      {lead.source || lead.type || 'Website'}
-                    </Badge>
-                  </td>
-                  <td>
-                    <div style={{ fontSize: '0.85rem' }}>{lead.email}</div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{lead.phone}</div>
-                  </td>
-                  <td style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                    {lead.created_at ? new Date(lead.created_at).toLocaleDateString() : 'Recent'}
-                  </td>
-                  <td>
-                    <select
-                      className="form-select"
-                      value={lead.status || 'new'}
-                      onChange={(e) => handleStatusChange(lead, e.target.value)}
-                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', borderRadius: '12px' }}
-                    >
-                      <option value="new">New</option>
-                      <option value="contacted">Contacted</option>
-                      <option value="consultation_booked">Consultation Booked</option>
-                      <option value="converted">Converted</option>
-                      <option value="not_interested">Not Interested</option>
-                    </select>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
-                      {lead.status !== 'converted' && lead.status !== 'not_interested' && (
-                        <button
-                          onClick={() => openLogConsultation(lead)}
-                          className="btn btn-outline btn-sm"
-                          style={{ padding: '3px 8px', fontSize: '0.72rem', gap: '3px' }}
-                          title="Log consultation details from Calendly"
-                        >
-                          <Calendar size={12} /> Log Consultation
-                        </button>
-                      )}
-                      {lead.status === 'converted' ? (
-                        <span style={{ fontSize: '0.78rem', color: 'var(--status-green)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                          <CheckCircle2 size={13} /> Converted
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => openConvertModal(lead)}
-                          className="btn btn-primary btn-sm"
-                          style={{ padding: '3px 8px', fontSize: '0.72rem', gap: '3px' }}
-                        >
-                          <UserCheck size={12} /> Convert
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
+              sortedItems.map((lead) => {
+                const leadKey = `${lead.type}-${lead.id}`;
+                const isNew = newLeadIds.has(leadKey);
+                return (
+                  <tr key={leadKey} className={isNew ? 'row-highlight' : ''}>
+                    <td>
+                      <div style={{ fontWeight: 600, color: 'var(--forest-dark)' }}>{lead.name}</div>
+                      {lead.notes && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>{lead.notes}</div>}
+                    </td>
+                    <td>
+                      <Badge variant={lead.type === 'corporate' ? 'blue' : lead.type === 'contact' ? 'amber' : 'green'}>
+                        {lead.source || lead.type || 'Website'}
+                      </Badge>
+                    </td>
+                    <td>
+                      <div style={{ fontSize: '0.85rem' }}>{lead.email}</div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{lead.phone}</div>
+                    </td>
+                    <td style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                      {lead.created_at ? new Date(lead.created_at).toLocaleDateString() : 'Recent'}
+                    </td>
+                    <td>
+                      <select
+                        className="form-select" value={lead.status || 'new'}
+                        onChange={(e) => handleStatusChange(lead, e.target.value)}
+                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.78rem', borderRadius: '12px' }}
+                      >
+                        <option value="new">New</option>
+                        <option value="contacted">Contacted</option>
+                        <option value="consultation_booked">Consultation Booked</option>
+                        <option value="converted">Converted</option>
+                        <option value="not_interested">Not Interested</option>
+                      </select>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                        {lead.status !== 'converted' && lead.status !== 'not_interested' && (
+                          <button
+                            onClick={() => openLogConsultation(lead)}
+                            className="btn btn-outline btn-sm"
+                            style={{ padding: '3px 8px', fontSize: '0.72rem', gap: '3px' }}
+                          >
+                            <Calendar size={12} /> Log Consultation
+                          </button>
+                        )}
+                        {lead.status === 'converted' ? (
+                          <span style={{ fontSize: '0.78rem', color: 'var(--status-green)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                            <CheckCircle2 size={13} /> Converted
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => openConvertModal(lead)}
+                            className="btn btn-primary btn-sm"
+                            style={{ padding: '3px 8px', fontSize: '0.72rem', gap: '3px' }}
+                          >
+                            <UserCheck size={12} /> Convert
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
       </div>
 
-      {/* Convert to Patient Modal */}
       <Modal
         isOpen={convertModalOpen}
         onClose={() => setConvertModalOpen(false)}
@@ -297,76 +308,41 @@ export const LeadsModule = ({ onNavigate }) => {
         <form onSubmit={handleConvertSubmit}>
           <div className="form-group">
             <label className="form-label">Full Name</label>
-            <input
-              type="text"
-              className="form-input"
-              value={convertForm.name}
-              onChange={(e) => setConvertForm({ ...convertForm, name: e.target.value })}
-              required
-            />
+            <input type="text" className="form-input" value={convertForm.name}
+              onChange={(e) => setConvertForm({ ...convertForm, name: e.target.value })} required />
           </div>
-
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div className="form-group">
               <label className="form-label">Email Address</label>
-              <input
-                type="email"
-                className="form-input"
-                value={convertForm.email}
-                onChange={(e) => setConvertForm({ ...convertForm, email: e.target.value })}
-              />
+              <input type="email" className="form-input" value={convertForm.email}
+                onChange={(e) => setConvertForm({ ...convertForm, email: e.target.value })} />
             </div>
             <div className="form-group">
               <label className="form-label">Phone Number</label>
-              <input
-                type="text"
-                className="form-input"
-                value={convertForm.phone}
-                onChange={(e) => setConvertForm({ ...convertForm, phone: e.target.value })}
-              />
+              <input type="text" className="form-input" value={convertForm.phone}
+                onChange={(e) => setConvertForm({ ...convertForm, phone: e.target.value })} />
             </div>
           </div>
-
           <div className="form-group">
             <label className="form-label">Health Goals</label>
-            <textarea
-              className="form-textarea"
-              rows="3"
-              value={convertForm.health_goals}
+            <textarea className="form-textarea" rows="3" value={convertForm.health_goals}
               onChange={(e) => setConvertForm({ ...convertForm, health_goals: e.target.value })}
-              placeholder="e.g. Stress management, chronic back pain relief, prenatal care..."
-            />
+              placeholder="e.g. Stress management, chronic back pain relief, prenatal care..." />
           </div>
-
           <div className="form-group">
             <label className="form-label">Assigned Care Coordinator</label>
-            <input
-              type="text"
-              className="form-input"
-              value={convertForm.coordinator}
-              onChange={(e) => setConvertForm({ ...convertForm, coordinator: e.target.value })}
-            />
+            <input type="text" className="form-input" value={convertForm.coordinator}
+              onChange={(e) => setConvertForm({ ...convertForm, coordinator: e.target.value })} />
           </div>
-
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
-            <button type="button" onClick={() => setConvertModalOpen(false)} className="btn btn-outline" disabled={converting}>
-              Cancel
-            </button>
+            <button type="button" onClick={() => setConvertModalOpen(false)} className="btn btn-outline" disabled={converting}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={converting} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              {converting ? (
-                <>
-                  <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-                  Creating...
-                </>
-              ) : (
-                'Create Patient Profile'
-              )}
+              {converting ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Creating...</> : 'Create Patient Profile'}
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* Log Consultation Modal */}
       <Modal
         isOpen={logModalOpen}
         onClose={() => setLogModalOpen(false)}
@@ -376,68 +352,38 @@ export const LeadsModule = ({ onNavigate }) => {
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
             Enter the consultation details from the Calendly confirmation. This will create a session record in the dashboard.
           </p>
-
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div className="form-group">
               <label className="form-label">Consultation Date</label>
-              <input
-                type="date"
-                className="form-input"
-                value={logForm.session_date}
-                onChange={(e) => setLogForm({ ...logForm, session_date: e.target.value })}
-                required
-              />
+              <input type="date" className="form-input" value={logForm.session_date}
+                onChange={(e) => setLogForm({ ...logForm, session_date: e.target.value })} required />
             </div>
             <div className="form-group">
               <label className="form-label">Consultation Time</label>
-              <input
-                type="time"
-                className="form-input"
-                value={logForm.session_time}
-                onChange={(e) => setLogForm({ ...logForm, session_time: e.target.value })}
-                required
-              />
+              <input type="time" className="form-input" value={logForm.session_time}
+                onChange={(e) => setLogForm({ ...logForm, session_time: e.target.value })} required />
             </div>
           </div>
-
           <div className="form-group">
             <label className="form-label">Session Type</label>
-            <select
-              className="form-select"
-              value={logForm.session_type}
-              onChange={(e) => setLogForm({ ...logForm, session_type: e.target.value })}
-            >
+            <select className="form-select" value={logForm.session_type}
+              onChange={(e) => setLogForm({ ...logForm, session_type: e.target.value })}>
               <option value="Free Consultation">Free Consultation</option>
               <option value="Follow-up Consultation">Follow-up Consultation</option>
               <option value="Initial Assessment">Initial Assessment</option>
               <option value="Yoga Therapy Session">Yoga Therapy Session</option>
             </select>
           </div>
-
           <div className="form-group">
             <label className="form-label">Meeting Link (optional)</label>
-            <input
-              type="url"
-              className="form-input"
-              value={logForm.meeting_link}
+            <input type="url" className="form-input" value={logForm.meeting_link}
               onChange={(e) => setLogForm({ ...logForm, meeting_link: e.target.value })}
-              placeholder="https://meet.google.com/... or https://zoom.us/j/..."
-            />
+              placeholder="https://meet.google.com/... or https://zoom.us/j/..." />
           </div>
-
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
-            <button type="button" onClick={() => setLogModalOpen(false)} className="btn btn-outline">
-              Cancel
-            </button>
+            <button type="button" onClick={() => setLogModalOpen(false)} className="btn btn-outline">Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={logSaving} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              {logSaving ? (
-                <>
-                  <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-                  Saving...
-                </>
-              ) : (
-                'Save Consultation'
-              )}
+              {logSaving ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Saving...</> : 'Save Consultation'}
             </button>
           </div>
         </form>

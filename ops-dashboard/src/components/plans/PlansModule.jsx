@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { useSortableData } from '../../hooks/useSortableData';
 import { Badge } from '../common/Badge';
 import { Modal } from '../common/Modal';
-import { Package, Plus, CheckCircle, CreditCard, User } from 'lucide-react';
+import { Package, Plus, CheckCircle, CreditCard, User, ArrowUp, ArrowDown } from 'lucide-react';
 
 export const PlansModule = () => {
   const [plans, setPlans] = useState([]);
@@ -44,6 +45,23 @@ export const PlansModule = () => {
     loadData();
   }, []);
 
+  const { sortedItems, requestSort, sortConfig } = useSortableData(plans, { key: 'start_date', direction: 'desc' });
+
+  const SortIcon = ({ columnKey }) => {
+    if (!sortConfig || sortConfig.key !== columnKey) return null;
+    return sortConfig.direction === 'asc'
+      ? <ArrowUp size={13} style={{ marginLeft: '3px' }} />
+      : <ArrowDown size={13} style={{ marginLeft: '3px' }} />;
+  };
+
+  const thStyle = (key) => ({
+    cursor: 'pointer',
+    userSelect: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '2px',
+  });
+
   const handleCreatePlan = async (e) => {
     e.preventDefault();
     try {
@@ -73,11 +91,11 @@ export const PlansModule = () => {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Patient Name</th>
-              <th>Service & Package</th>
-              <th>Session Progress</th>
-              <th>Payment Info</th>
-              <th>Status</th>
+              <th onClick={() => requestSort('patient_name')} style={thStyle('patient_name')}>Patient Name<SortIcon columnKey="patient_name" /></th>
+              <th onClick={() => requestSort('service_name')} style={thStyle('service_name')}>Service & Package<SortIcon columnKey="service_name" /></th>
+              <th onClick={() => requestSort('sessions_completed')} style={thStyle('sessions_completed')}>Session Progress<SortIcon columnKey="sessions_completed" /></th>
+              <th onClick={() => requestSort('amount_paid')} style={thStyle('amount_paid')}>Payment Info<SortIcon columnKey="amount_paid" /></th>
+              <th onClick={() => requestSort('payment_status')} style={thStyle('payment_status')}>Status<SortIcon columnKey="payment_status" /></th>
             </tr>
           </thead>
           <tbody>
@@ -85,14 +103,14 @@ export const PlansModule = () => {
               <tr>
                 <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>Loading active enrollments...</td>
               </tr>
-            ) : plans.length === 0 ? (
+            ) : sortedItems.length === 0 ? (
               <tr>
                 <td colSpan="5" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
                   No active service plans enrolled yet.
                 </td>
               </tr>
             ) : (
-              plans.map((plan) => {
+              sortedItems.map((plan) => {
                 const percent = Math.round(((plan.sessions_completed || 0) / (plan.sessions_total || 1)) * 100);
                 return (
                   <tr key={plan.id}>

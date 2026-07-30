@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { useSortableData } from '../../hooks/useSortableData';
 import { Badge } from '../common/Badge';
 import { Modal } from '../common/Modal';
-import { Search, Plus, User, Mail, Phone, Calendar, Heart, Share2, FileText, Check } from 'lucide-react';
+import { Search, Plus, User, Mail, Phone, Calendar, Heart, Share2, FileText, Check, ArrowUp, ArrowDown } from 'lucide-react';
 
 export const PatientsModule = () => {
   const [patients, setPatients] = useState([]);
@@ -95,6 +96,23 @@ export const PatientsModule = () => {
       p.phone?.includes(searchQuery)
   );
 
+  const { sortedItems, requestSort, sortConfig } = useSortableData(filteredPatients, { key: 'created_at', direction: 'desc' });
+
+  const SortIcon = ({ columnKey }) => {
+    if (!sortConfig || sortConfig.key !== columnKey) return null;
+    return sortConfig.direction === 'asc'
+      ? <ArrowUp size={13} style={{ marginLeft: '3px' }} />
+      : <ArrowDown size={13} style={{ marginLeft: '3px' }} />;
+  };
+
+  const thStyle = (key) => ({
+    cursor: 'pointer',
+    userSelect: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '2px',
+  });
+
   return (
     <div>
       {/* Action Bar */}
@@ -123,11 +141,11 @@ export const PatientsModule = () => {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Patient Name</th>
+              <th onClick={() => requestSort('name')} style={thStyle('name')}>Patient Name<SortIcon columnKey="name" /></th>
               <th>Contact Details</th>
-              <th>Health Focus</th>
-              <th>Coordinator</th>
-              <th>Status</th>
+              <th onClick={() => requestSort('health_goals')} style={thStyle('health_goals')}>Health Focus<SortIcon columnKey="health_goals" /></th>
+              <th onClick={() => requestSort('coordinator')} style={thStyle('coordinator')}>Coordinator<SortIcon columnKey="coordinator" /></th>
+              <th onClick={() => requestSort('status')} style={thStyle('status')}>Status<SortIcon columnKey="status" /></th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -136,14 +154,14 @@ export const PatientsModule = () => {
               <tr>
                 <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>Loading patient profiles...</td>
               </tr>
-            ) : filteredPatients.length === 0 ? (
+            ) : sortedItems.length === 0 ? (
               <tr>
                 <td colSpan="6" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
                   No patient profiles found.
                 </td>
               </tr>
             ) : (
-              filteredPatients.map((patient) => (
+              sortedItems.map((patient) => (
                 <tr key={patient.id}>
                   <td>
                     <div style={{ fontWeight: 600, color: 'var(--forest-dark)' }}>{patient.name}</div>

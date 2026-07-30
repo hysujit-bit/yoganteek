@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { useSortableData } from '../../hooks/useSortableData';
 import { Badge } from '../common/Badge';
 import { Modal } from '../common/Modal';
-import { Calendar, Clock, User, Phone, Mail, Edit2, XCircle, CheckCircle2, Video, RefreshCw, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, User, Phone, Mail, Edit2, XCircle, CheckCircle2, Video, RefreshCw, AlertCircle, ArrowUp, ArrowDown } from 'lucide-react';
 
 export const BookingsModule = () => {
   const [bookings, setBookings] = useState([]);
@@ -85,6 +86,23 @@ export const BookingsModule = () => {
     if (activeTab === 'upcoming') return isUpcoming(b);
     if (activeTab === 'past') return isPast(b);
     return true;
+  });
+
+  const { sortedItems, requestSort, sortConfig } = useSortableData(filteredBookings, { key: 'booking_date', direction: 'desc' });
+
+  const SortIcon = ({ columnKey }) => {
+    if (!sortConfig || sortConfig.key !== columnKey) return null;
+    return sortConfig.direction === 'asc'
+      ? <ArrowUp size={13} style={{ marginLeft: '3px' }} />
+      : <ArrowDown size={13} style={{ marginLeft: '3px' }} />;
+  };
+
+  const thStyle = (key) => ({
+    cursor: 'pointer',
+    userSelect: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '2px',
   });
 
   const upcomingCount = bookings.filter(isUpcoming).length;
@@ -225,19 +243,19 @@ export const BookingsModule = () => {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Patient</th>
+              <th onClick={() => requestSort('patient_name')} style={thStyle('patient_name')}>Patient<SortIcon columnKey="patient_name" /></th>
               <th>Contact</th>
-              <th>Date & Time</th>
+              <th onClick={() => requestSort('booking_date')} style={thStyle('booking_date')}>Date & Time<SortIcon columnKey="booking_date" /></th>
               <th>Meeting</th>
-              <th>Assigned To</th>
-              <th>Status</th>
+              <th onClick={() => requestSort('assigned_doctor')} style={thStyle('assigned_doctor')}>Assigned To<SortIcon columnKey="assigned_doctor" /></th>
+              <th onClick={() => requestSort('status')} style={thStyle('status')}>Status<SortIcon columnKey="status" /></th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr><td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>Loading bookings...</td></tr>
-            ) : filteredBookings.length === 0 ? (
+            ) : sortedItems.length === 0 ? (
               <tr>
                 <td colSpan="7" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
                   <Calendar size={36} color="var(--sage-primary)" style={{ marginBottom: '0.5rem' }} />
@@ -251,7 +269,7 @@ export const BookingsModule = () => {
                 </td>
               </tr>
             ) : (
-              filteredBookings.map((b) => (
+              sortedItems.map((b) => (
                 <tr key={b.id}>
                   <td>
                     <div style={{ fontWeight: 600, color: 'var(--forest-dark)' }}>{b.patient_name}</div>

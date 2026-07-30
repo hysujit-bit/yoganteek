@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { useSortableData } from '../../hooks/useSortableData';
 import { Badge } from '../common/Badge';
 import { Modal } from '../common/Modal';
-import { Calendar as CalendarIcon, Plus, Video, Share2, Mail, MessageSquare, Copy, Check, Clock, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, Video, Share2, Mail, MessageSquare, Copy, Check, Clock, RefreshCw, CheckCircle2, ArrowUp, ArrowDown } from 'lucide-react';
 
 export const SessionsModule = () => {
   const [sessions, setSessions] = useState([]);
@@ -141,6 +142,23 @@ export const SessionsModule = () => {
     return true;
   });
 
+  const { sortedItems, requestSort, sortConfig } = useSortableData(filteredSessions, { key: 'session_date', direction: 'desc' });
+
+  const SortIcon = ({ columnKey }) => {
+    if (!sortConfig || sortConfig.key !== columnKey) return null;
+    return sortConfig.direction === 'asc'
+      ? <ArrowUp size={13} style={{ marginLeft: '3px' }} />
+      : <ArrowDown size={13} style={{ marginLeft: '3px' }} />;
+  };
+
+  const thStyle = (key) => ({
+    cursor: 'pointer',
+    userSelect: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '2px',
+  });
+
   const upcomingCount = sessions.filter(isUpcoming).length;
   const pastCount = sessions.filter(isPast).length;
 
@@ -232,11 +250,11 @@ export const SessionsModule = () => {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Patient Name</th>
-              <th>Date & Time</th>
-              <th>Session Type</th>
+              <th onClick={() => requestSort('patient_name')} style={thStyle('patient_name')}>Patient Name<SortIcon columnKey="patient_name" /></th>
+              <th onClick={() => requestSort('session_date')} style={thStyle('session_date')}>Date & Time<SortIcon columnKey="session_date" /></th>
+              <th onClick={() => requestSort('session_type')} style={thStyle('session_type')}>Session Type<SortIcon columnKey="session_type" /></th>
               <th>Meeting Link</th>
-              <th>Status</th>
+              <th onClick={() => requestSort('status')} style={thStyle('status')}>Status<SortIcon columnKey="status" /></th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -245,7 +263,7 @@ export const SessionsModule = () => {
               <tr>
                 <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>Loading sessions...</td>
               </tr>
-            ) : filteredSessions.length === 0 ? (
+            ) : sortedItems.length === 0 ? (
               <tr>
                 <td colSpan="6" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
                   <CheckCircle2 size={36} color="var(--sage-primary)" style={{ marginBottom: '0.5rem' }} />
@@ -259,7 +277,7 @@ export const SessionsModule = () => {
                 </td>
               </tr>
             ) : (
-              filteredSessions.map((session) => (
+              sortedItems.map((session) => (
                 <tr key={session.id} style={{ backgroundColor: isPast(session) && session.status === 'completed' ? '#FAFFF9' : isPast(session) && session.status === 'no-show' ? '#FFFAF9' : undefined }}>
                   <td>
                     <div style={{ fontWeight: 600, color: 'var(--forest-dark)' }}>{session.patient_name}</div>
