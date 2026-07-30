@@ -697,7 +697,7 @@ def fetch_google_calendar_events(days_ahead: int = 7):
 
 def create_google_calendar_event(patient_name, patient_email, booking_date, booking_time, duration_minutes=30):
     """
-    Create a Google Calendar event with Google Meet link.
+    Create a Google Calendar event. Attempts to add Google Meet link.
     Returns dict with event_id and meeting_link, or None on failure.
     """
     service = get_google_calendar_service()
@@ -709,10 +709,10 @@ def create_google_calendar_event(patient_name, patient_email, booking_date, book
         # Parse date and time into datetime (IST = UTC+5:30)
         start_dt = datetime.strptime(f"{booking_date} {booking_time}", "%Y-%m-%d %H:%M")
         end_dt = start_dt + timedelta(minutes=duration_minutes)
-        # Format as ISO with IST offset for Google Calendar API
         start_iso = start_dt.strftime("%Y-%m-%dT%H:%M:%S+05:30")
         end_iso = end_dt.strftime("%Y-%m-%dT%H:%M:%S+05:30")
 
+        # Step 1: Create event WITHOUT conference data (always works)
         event_body = {
             'summary': f'Consultation - {patient_name}',
             'description': f'Free consultation booking for {patient_name}\nEmail: {patient_email}',
@@ -724,32 +724,44 @@ def create_google_calendar_event(patient_name, patient_email, booking_date, book
                 'dateTime': end_iso,
                 'timeZone': 'Asia/Kolkata',
             },
-            'attendees': [
-                {'email': patient_email},
-            ],
-            'conferenceData': {
-                'createRequest': {
-                    'requestId': f'booking-{booking_date}-{booking_time}-{patient_name.replace(" ", "-")}',
-                    'conferenceSolutionKey': {'type': 'hangoutsMeet'},
-                }
-            },
         }
 
         event = service.events().insert(
             calendarId=GOOGLE_CALENDAR_ID,
             body=event_body,
-            conferenceDataVersion=1,
         ).execute()
 
         event_id = event.get('id', '')
-        meeting_link = event.get('hangoutLink', '')
-        if not meeting_link:
-            conference = event.get('conferenceData', {})
-            entry_points = conference.get('entryPoints', [])
-            for ep in entry_points:
-                if ep.get('entryPointType') == 'video':
-                    meeting_link = ep.get('uri', '')
-                    break
+        meeting_link = ''
+
+        # Step 2: Try to patch with Google Meet conference
+        try:
+            patch_body = {
+                'conferenceData': {
+                    'createRequest': {
+                        'requestId': f'booking-{booking_date}-{booking_time}-{event_id[:8]}',
+                        'conferenceSolutionKey': {'type': 'hangoutsMeet'},
+                    }
+                },
+            }
+            updated = service.events().patch(
+                calendarId=GOOGLE_CALENDAR_ID,
+                eventId=event_id,
+                body=patch_body,
+                conferenceDataVersion=1,
+            ).execute()
+
+            meeting_link = updated.get('hangoutLink', '')
+            if not meeting_link:
+                conference = updated.get('conferenceData', {})
+                entry_points = conference.get('entryPoints', [])
+                for ep in entry_points:
+                    if ep.get('entryPointType') == 'video':
+                        meeting_link = ep.get('uri', '')
+                        break
+            print(f"[GOOGLE CAL] Meet link added: {meeting_link}")
+        except Exception as meet_err:
+            print(f"[GOOGLE CAL] Could not add Meet link (event still created): {meet_err}")
 
         print(f"[GOOGLE CAL] Event created: {event_id} | Meeting: {meeting_link}")
         return {'event_id': event_id, 'meeting_link': meeting_link}
@@ -2452,26 +2464,47 @@ def test_create_calendar_event():
             'description': 'Debug test event',
             'start': {'dateTime': start_iso, 'timeZone': 'Asia/Kolkata'},
             'end': {'dateTime': end_iso, 'timeZone': 'Asia/Kolkata'},
-            'conferenceData': {
-                'createRequest': {
-                    'requestId': 'debug-test-123',
-                    'conferenceSolutionKey': {'type': 'hangoutsMeet'},
-                }
-            },
         }
 
+        # Step 1: Create event without conference data
         event = service.events().insert(
             calendarId=GOOGLE_CALENDAR_ID,
             body=event_body,
-            conferenceDataVersion=1,
         ).execute()
 
         results["steps"].append({
             "step": "create_event",
             "success": True,
             "event_id": event.get('id'),
-            "hangout_link": event.get('hangoutLink', ''),
         })
+
+        # Step 2: Try to patch with Meet conference
+        try:
+            patch_body = {
+                'conferenceData': {
+                    'createRequest': {
+                        'requestId': 'debug-test-123',
+                        'conferenceSolutionKey': {'type': 'hangoutsMeet'},
+                    }
+                },
+            }
+            updated = service.events().patch(
+                calendarId=GOOGLE_CALENDAR_ID,
+                eventId=event['id'],
+                body=patch_body,
+                conferenceDataVersion=1,
+            ).execute()
+            results["steps"].append({
+                "step": "add_meet",
+                "success": True,
+                "hangout_link": updated.get('hangoutLink', ''),
+            })
+        except Exception as meet_err:
+            results["steps"].append({
+                "step": "add_meet",
+                "success": False,
+                "error": str(meet_err),
+            })
 
         # Delete the test event
         service.events().delete(
