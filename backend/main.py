@@ -2178,6 +2178,25 @@ def mark_all_notifications_read():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/api/notifications/cleanup-duplicates")
+def cleanup_duplicate_notifications():
+    """Remove duplicate notifications (keep lowest id per type+related_id+related_type)."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("""
+            DELETE FROM notifications
+            WHERE id NOT IN (
+                SELECT MIN(id) FROM notifications
+                GROUP BY type, related_id, related_type
+            )
+        """)
+        deleted = cur.rowcount
+        conn.commit(); cur.close(); conn.close()
+        return {"success": True, "deleted": deleted, "message": f"Removed {deleted} duplicate notification(s)"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/api/notifications/generate")
 def generate_notifications():
     """
