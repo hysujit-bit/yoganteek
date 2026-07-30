@@ -7,9 +7,9 @@ export const NotificationsModule = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead, loading } = useNotifications();
   const [filterPriority, setFilterPriority] = useState('all');
 
-  const filtered = notifications.filter(
-    (n) => filterPriority === 'all' || n.priority === filterPriority
-  );
+  const filtered = notifications
+    .filter((n) => filterPriority === 'all' || n.priority === filterPriority)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   return (
     <div>
