@@ -999,7 +999,9 @@ def ensure_notifications_table():
                 related_type VARCHAR(50),
                 is_read BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT NOW()
-            )
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_notifications_dedup
+                ON notifications (type, related_id, related_type)
         """)
         conn.commit(); cur.close(); conn.close()
         print("[DB] notifications table ready")
@@ -2189,24 +2191,38 @@ def generate_notifications():
         today = date.today()
         created = 0
 
+        cur.execute("""
+            DELETE FROM notifications
+            WHERE id NOT IN (
+                SELECT MIN(id) FROM notifications
+                GROUP BY type, related_id, related_type
+            )
+        """)
+        cleaned = cur.rowcount
+        if cleaned:
+            print(f"[NOTIFY] Cleaned {cleaned} duplicate notifications")
+
         def notification_exists(ntype: str, related_id: int, related_type: str) -> bool:
-            """Prevent duplicate notifications for the same item on the same day."""
+            """Prevent duplicate notifications for the same item."""
             cur.execute("""
                 SELECT id FROM notifications
                 WHERE type = %s AND related_id = %s AND related_type = %s
-                  AND created_at::date = CURRENT_DATE
             """, (ntype, related_id, related_type))
             return cur.fetchone() is not None
 
         def add_notification(ntype: str, priority: str, title: str,
                               message: str, related_id: int, related_type: str):
             nonlocal created
-            if not notification_exists(ntype, related_id, related_type):
+            try:
                 cur.execute("""
                     INSERT INTO notifications (type, priority, title, message, related_id, related_type)
                     VALUES (%s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (type, related_id, related_type) DO NOTHING
                 """, (ntype, priority, title, message, related_id, related_type))
-                created += 1
+                if cur.rowcount > 0:
+                    created += 1
+            except Exception as e:
+                print(f"[NOTIFY] Insert error: {e}")
 
         # 1. Upcoming sessions (next 60 min) + auto-reminder emails
         cur.execute("""

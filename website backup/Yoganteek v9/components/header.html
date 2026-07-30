@@ -1,0 +1,96 @@
+<!-- Shared Header — loaded by loader.js -->
+<nav id="main-nav" class="fixed top-0 inset-x-0 z-50 bg-white/90 backdrop-blur-md border-b border-black/5 transition-all duration-300">
+  <div class="max-w-6xl mx-auto px-5 flex items-center justify-between h-[72px]">
+    <a href="index.html" class="flex-shrink-0">
+      <img src="./assets/logo.svg" alt="Yoganteek Logo" class="logo-img w-auto">
+    </a>
+    <div class="hidden md:flex items-center gap-7">
+      <a href="index.html" class="nav-link font-medium text-sm text-gray-700 hover:text-corp-sagedark transition-colors" data-page="index">Home</a>
+      <a href="about.html" class="nav-link font-medium text-sm text-gray-700 hover:text-corp-sagedark transition-colors" data-page="about">About</a>
+      <a href="services.html" class="nav-link font-medium text-sm text-gray-700 hover:text-corp-sagedark transition-colors" data-page="services">Services</a>
+      <a href="Yoganteek_Corporate_Landing_Page.html" class="nav-link font-medium text-sm text-gray-700 hover:text-corp-sagedark transition-colors" data-page="corporate">Corporate</a>
+      <a href="blog.html" class="nav-link font-medium text-sm text-gray-700 hover:text-corp-sagedark transition-colors" data-page="blog">Blog</a>
+      <a href="#book" onclick="openBookingModal(); return false;" class="ml-2 inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-white text-sm font-semibold shadow-sm hover:shadow-md" style="background:linear-gradient(135deg,#C89B3C 0%,#A07830 100%)">Book Consultation</a>
+    </div>
+    <button id="menu-btn" class="md:hidden relative z-50 w-8 h-8 flex flex-col justify-center items-center gap-[5px]" aria-label="Open menu">
+      <span class="block w-[22px] h-[2px] bg-gray-800 rounded transition-all duration-300 origin-center"></span>
+      <span class="block w-[22px] h-[2px] bg-gray-800 rounded transition-all duration-300"></span>
+      <span class="block w-[22px] h-[2px] bg-gray-800 rounded transition-all duration-300 origin-center"></span>
+    </button>
+  </div>
+  <div id="mobile-menu" class="md:hidden overflow-hidden max-h-0 opacity-0 transition-all duration-400 ease-in-out">
+    <div class="bg-white/95 backdrop-blur-md px-6 py-6 border-t border-black/5 space-y-1">
+      <a href="index.html" class="mobile-link block py-3 text-base font-medium text-gray-800 hover:text-corp-sagedark transition-colors" data-page="index">Home</a>
+      <a href="about.html" class="mobile-link block py-3 text-base font-medium text-gray-800 hover:text-corp-sagedark transition-colors" data-page="about">About</a>
+      <a href="services.html" class="mobile-link block py-3 text-base font-medium text-gray-800 hover:text-corp-sagedark transition-colors" data-page="services">Services</a>
+      <a href="Yoganteek_Corporate_Landing_Page.html" class="mobile-link block py-3 text-base font-medium text-gray-800 hover:text-corp-sagedark transition-colors" data-page="corporate">Corporate</a>
+      <a href="blog.html" class="mobile-link block py-3 text-base font-medium text-gray-800 hover:text-corp-sagedark transition-colors" data-page="blog">Blog</a>
+      <a href="#book" onclick="openBookingModal(); return false;" class="mt-4 w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full text-white text-sm font-semibold shadow-sm" style="background:linear-gradient(135deg,#C89B3C 0%,#A07830 100%)">Book Consultation</a>
+    </div>
+  </div>
+</nav>
+
+<style>
+  /* Header Logo Size */
+  .logo-img { height: 4rem; }
+  @media (min-width: 768px) { .logo-img { height: 8rem; } }
+
+  /* Nav scroll effect */
+  #main-nav { transition: box-shadow 0.3s ease; }
+  #main-nav.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,0.09); }
+
+  /* Mobile menu */
+  #mobile-menu { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease; opacity: 0; }
+  #mobile-menu.open { max-height: 420px; opacity: 1; }
+
+  /* Hamburger animation */
+  #menu-btn span { display: block; width: 22px; height: 2px; background: #2C2C2C; border-radius: 2px; transition: transform 0.3s, opacity 0.2s; transform-origin: center; }
+  #menu-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  #menu-btn.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  #menu-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* Active page */
+  .nav-link.active, .mobile-link.active { color: #5A4A72 !important; font-weight: 600; }
+</style>
+
+<script>
+(function(){
+  var nav = document.getElementById('main-nav');
+  var btn = document.getElementById('menu-btn');
+  var menu = document.getElementById('mobile-menu');
+
+  // Scroll effect
+  if(nav) {
+    window.addEventListener('scroll', function(){
+      nav.classList.toggle('scrolled', window.scrollY > 20);
+    });
+  }
+
+  // Mobile menu toggle
+  if(btn && menu) {
+    btn.addEventListener('click', function(){
+      btn.classList.toggle('open');
+      menu.classList.toggle('open');
+      document.body.style.overflow = menu.classList.contains('open') ? 'hidden' : '';
+    });
+  }
+
+  // Active page detection
+  var p = window.location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav-link, .mobile-link').forEach(function(l){
+    var d = l.getAttribute('data-page');
+    if(d && (p.indexOf(d) !== -1 || (p === '' && d === 'index'))) {
+      l.classList.add('active');
+    }
+  });
+
+  // Close mobile menu on link click
+  document.querySelectorAll('.mobile-link').forEach(function(l){
+    l.addEventListener('click', function(){
+      if(btn) btn.classList.remove('open');
+      if(menu) menu.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+})();
+</script>
