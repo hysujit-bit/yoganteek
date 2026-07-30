@@ -10,6 +10,7 @@ import { PatientsModule } from './components/patients/PatientsModule';
 import { SessionsModule } from './components/sessions/SessionsModule';
 import { PrescriptionBuilder } from './components/prescriptions/PrescriptionBuilder';
 import { PlansModule } from './components/plans/PlansModule';
+import { BookingsModule } from './components/bookings/BookingsModule';
 import { NotificationsModule } from './components/notifications/NotificationsModule';
 
 export const App = () => {
@@ -29,6 +30,8 @@ export const App = () => {
         return <PrescriptionBuilder />;
       case 'plans':
         return <PlansModule />;
+      case 'bookings':
+        return <BookingsModule />;
       case 'notifications':
         return <NotificationsModule />;
       default:

@@ -10,6 +10,15 @@ from datetime import datetime, date, timedelta
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+# Google Calendar API
+try:
+    from google.oauth2 import service_account
+    from googleapiclient.discovery import build
+    GOOGLE_CALENDAR_AVAILABLE = True
+except ImportError:
+    GOOGLE_CALENDAR_AVAILABLE = False
+    print("[WARN] google-api-python-client not installed. Google Calendar sync disabled.")
+
 app = FastAPI(title="Yoganteek API")
 
 app.add_middleware(
@@ -33,6 +42,10 @@ SMTP_USER = os.environ.get('SMTP_USER', 'yoganteekwellness@gmail.com')
 SMTP_PASS = os.environ.get('SMTP_PASS', '')
 FROM_EMAIL = os.environ.get('FROM_EMAIL', 'yoganteekwellness@gmail.com')
 FROM_NAME = os.environ.get('FROM_NAME', 'Yoganteek Wellness')
+
+# Google Calendar config (set via environment variables on Render)
+GOOGLE_CALENDAR_ID = os.environ.get('GOOGLE_CALENDAR_ID', 'yoganteekwellness@gmail.com')
+GOOGLE_SERVICE_ACCOUNT_JSON = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON', '')
 
 
 # ─────────────────────────────────────────────
@@ -134,6 +147,24 @@ class SessionUpdate(BaseModel):
     coordinator: Optional[str] = None
 
 
+class CalendlyBookingRequest(BaseModel):
+    """Auto-capture booking from Calendly redirect URL params."""
+    name: str
+    email: str
+    start_time: str                        # ISO 8601 with timezone
+    end_time: Optional[str] = None
+    event_type: Optional[str] = "Free Consultation"
+
+
+class LogConsultationRequest(BaseModel):
+    """Manual consultation logging from Ops Dashboard (fallback)."""
+    lead_id: int
+    session_date: str                      # YYYY-MM-DD
+    session_time: str                      # HH:MM
+    meeting_link: Optional[str] = None
+    session_type: Optional[str] = "Free Consultation"
+
+
 class ShareSessionRequest(BaseModel):
     prep_instructions: Optional[str] = None
 
@@ -162,6 +193,26 @@ class PatientPlanCreate(BaseModel):
     amount_paid: Optional[float] = None
     payment_status: Optional[str] = 'pending'  # pending | partial | paid
     coordinator: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class BookingCreate(BaseModel):
+    """Create a new public booking (from booking page)."""
+    patient_name: str
+    patient_email: str
+    patient_phone: Optional[str] = None
+    health_goal: Optional[str] = None
+    booking_date: str                      # YYYY-MM-DD
+    booking_time: str                      # HH:MM
+
+
+class BookingUpdate(BaseModel):
+    """Update a booking (from Ops Dashboard)."""
+    status: Optional[str] = None           # confirmed | cancelled | completed | rescheduled
+    booking_date: Optional[str] = None
+    booking_time: Optional[str] = None
+    meeting_link: Optional[str] = None
+    assigned_doctor: Optional[str] = None
     notes: Optional[str] = None
 
 
@@ -561,6 +612,90 @@ def build_patient_brief_email(patient: dict, upcoming_session: dict = None,
 
 
 # ─────────────────────────────────────────────
+# GOOGLE CALENDAR HELPER
+# ─────────────────────────────────────────────
+
+def get_google_calendar_service():
+    """Build and return a Google Calendar API service object."""
+    if not GOOGLE_CALENDAR_AVAILABLE:
+        return None
+    if not GOOGLE_SERVICE_ACCOUNT_JSON:
+        print("[GOOGLE CAL] GOOGLE_SERVICE_ACCOUNT_JSON not set")
+        return None
+    try:
+        creds_info = json.loads(GOOGLE_SERVICE_ACCOUNT_JSON)
+        creds = service_account.Credentials.from_service_account_info(
+            creds_info,
+            scopes=['https://www.googleapis.com/auth/calendar.readonly']
+        )
+        service = build('calendar', 'v3', credentials=creds)
+        return service
+    except Exception as e:
+        print(f"[GOOGLE CAL] Failed to build service: {e}")
+        return None
+
+
+def fetch_google_calendar_events(days_ahead: int = 7):
+    """
+    Fetch upcoming events from Google Calendar.
+    Returns list of events with meeting links.
+    """
+    service = get_google_calendar_service()
+    if not service:
+        return []
+
+    try:
+        now = datetime.utcnow()
+        time_max = now + timedelta(days=days_ahead)
+
+        events_result = service.events().list(
+            calendarId=GOOGLE_CALENDAR_ID,
+            timeMin=now.isoformat() + 'Z',
+            timeMax=time_max.isoformat() + 'Z',
+            maxResults=50,
+            singleEvents=True,
+            orderBy='startTime'
+        ).execute()
+
+        events = events_result.get('items', [])
+        result = []
+        for event in events:
+            start = event.get('start', {})
+            start_dt = start.get('dateTime', start.get('date', ''))
+            end = event.get('end', {})
+            end_dt = end.get('dateTime', end.get('date', ''))
+
+            # Extract Google Meet link
+            meeting_link = ''
+            hangout_link = event.get('hangoutLink', '')
+            if hangout_link:
+                meeting_link = hangout_link
+            else:
+                # Check conference data for Meet link
+                conference = event.get('conferenceData', {})
+                entry_points = conference.get('entryPoints', [])
+                for ep in entry_points:
+                    if ep.get('entryPointType') == 'video':
+                        meeting_link = ep.get('uri', '')
+                        break
+
+            result.append({
+                'summary': event.get('summary', ''),
+                'description': event.get('description', ''),
+                'start': start_dt,
+                'end': end_dt,
+                'meeting_link': meeting_link,
+                'attendees': [a.get('email', '') for a in event.get('attendees', [])],
+                'google_event_id': event.get('id', ''),
+            })
+
+        return result
+    except Exception as e:
+        print(f"[GOOGLE CAL] Failed to fetch events: {e}")
+        return []
+
+
+# ─────────────────────────────────────────────
 # DB TABLE SETUP — Existing tables
 # ─────────────────────────────────────────────
 
@@ -796,6 +931,35 @@ def ensure_notifications_table():
         print(f"[DB] Error ensuring notifications table: {e}")
 
 
+def ensure_bookings_table():
+    try:
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS bookings (
+                id SERIAL PRIMARY KEY,
+                patient_name VARCHAR(255) NOT NULL,
+                patient_email VARCHAR(255) NOT NULL,
+                patient_phone VARCHAR(50),
+                health_goal VARCHAR(255),
+                booking_date DATE NOT NULL,
+                booking_time TIME NOT NULL,
+                duration_minutes INTEGER DEFAULT 30,
+                meeting_link TEXT,
+                status VARCHAR(50) DEFAULT 'confirmed',
+                assigned_doctor VARCHAR(255),
+                notes TEXT,
+                calendar_event_id TEXT,
+                reminder_24h_sent BOOLEAN DEFAULT FALSE,
+                reminder_1h_sent BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
+        conn.commit(); cur.close(); conn.close()
+        print("[DB] bookings table ready")
+    except Exception as e:
+        print(f"[DB] Error ensuring bookings table: {e}")
+
+
 # ─────────────────────────────────────────────
 # STARTUP — Ensure all tables exist
 # ─────────────────────────────────────────────
@@ -813,6 +977,7 @@ try:
     ensure_prescriptions_table()
     ensure_patient_plans_table()
     ensure_notifications_table()
+    ensure_bookings_table()
 except Exception as e:
     print(f"[DB] CRITICAL: Database connection failed on startup: {e}")
 
@@ -1387,6 +1552,305 @@ def share_session_details(session_id: int, req: ShareSessionRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/api/calendly-booking")
+def receive_calendly_booking(req: CalendlyBookingRequest):
+    """
+    Auto-capture a Calendly booking from the redirect URL parameters.
+    Creates a session in the sessions table and links it to an existing lead.
+    """
+    try:
+        conn = get_db(); cur = conn.cursor()
+
+        # Parse ISO 8601 datetime from Calendly (e.g. 2026-08-05T10:30:00+05:30)
+        session_date = None
+        session_time = None
+        try:
+            # Handle timezone offset format
+            dt_str = req.start_time.replace('+05:30', '+0530').replace('+00:00', '+0000')
+            if '+' in dt_str[10:] or dt_str.endswith('Z'):
+                dt_str = dt_str.replace('Z', '+0000')
+                # Remove timezone offset for strptime, keep date/time
+                naive = dt_str[:19]
+                dt_obj = datetime.strptime(naive, '%Y-%m-%dT%H:%M:%S')
+            else:
+                dt_obj = datetime.strptime(dt_str[:19], '%Y-%m-%dT%H:%M:%S')
+            session_date = dt_obj.strftime('%Y-%m-%d')
+            session_time = dt_obj.strftime('%H:%M')
+        except Exception as parse_err:
+            print(f"[CALENDLY] Date parse error: {parse_err}, raw: {req.start_time}")
+            # Try simple split as fallback
+            try:
+                parts = req.start_time.split('T')
+                session_date = parts[0]
+                session_time = parts[1][:5] if len(parts) > 1 else '10:00'
+            except:
+                session_date = date.today().isoformat()
+                session_time = '10:00'
+
+        # Find matching lead by email to link
+        lead_id = None
+        cur.execute("SELECT id FROM leads WHERE email = %s ORDER BY created_at DESC LIMIT 1", (req.email,))
+        lead_row = cur.fetchone()
+        if lead_row:
+            lead_id = lead_row[0]
+
+        # Create session record
+        cur.execute("""
+            INSERT INTO sessions (patient_id, patient_name, patient_email, session_date,
+                                  session_time, duration_minutes, session_type,
+                                  coordinator, status)
+            VALUES (NULL, %s, %s, %s, %s, 30, %s, 'Dr. Jayashree Pattanaik', 'scheduled')
+            RETURNING id
+        """, (req.name, req.email, session_date, session_time, req.event_type))
+        session_id = cur.fetchone()[0]
+
+        # Auto-update lead status to consultation_booked
+        if lead_id:
+            cur.execute("""
+                UPDATE leads SET status = 'consultation_booked',
+                    notes = COALESCE(notes, '') || %s
+                WHERE id = %s
+            """, (f"\n[Auto] Consultation booked for {session_date} at {session_time}", lead_id))
+
+        # Create notification
+        cur.execute("""
+            INSERT INTO notifications (type, priority, title, message, related_id, related_type)
+            VALUES ('new_lead', 'medium', 'New Consultation Booked',
+                    %s, %s, 'session')
+        """, (f"{req.name} — {req.event_type} on {session_date} at {session_time}", session_id))
+
+        conn.commit(); cur.close(); conn.close()
+        return {"success": True, "session_id": session_id,
+                "message": f"Booking captured for {req.name} on {session_date}"}
+    except Exception as e:
+        print(f"[CALENDLY ERROR] {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/leads/{lead_id}/log-consultation")
+def log_consultation(lead_id: int, req: LogConsultationRequest):
+    """
+    Manually log a consultation from the Ops Dashboard.
+    Creates a session and updates lead status to consultation_booked.
+    """
+    try:
+        conn = get_db(); cur = conn.cursor()
+
+        # Fetch lead details
+        cur.execute("SELECT name, email FROM leads WHERE id = %s", (lead_id,))
+        lead = cur.fetchone()
+        if not lead:
+            raise HTTPException(status_code=404, detail="Lead not found")
+        lead_name, lead_email = lead
+
+        # Create session
+        cur.execute("""
+            INSERT INTO sessions (patient_id, patient_name, patient_email, session_date,
+                                  session_time, duration_minutes, session_type,
+                                  meeting_link, coordinator, status)
+            VALUES (NULL, %s, %s, %s, %s, 30, %s, %s, 'Dr. Jayashree Pattanaik', 'scheduled')
+            RETURNING id
+        """, (lead_name, lead_email, req.session_date, req.session_time,
+              req.session_type, req.meeting_link))
+        session_id = cur.fetchone()[0]
+
+        # Update lead status
+        cur.execute("""
+            UPDATE leads SET status = 'consultation_booked',
+                notes = COALESCE(notes, '') || %s
+            WHERE id = %s
+        """, (f"\n[Manual] Consultation logged for {req.session_date} at {req.session_time}", lead_id))
+
+        # Create notification
+        cur.execute("""
+            INSERT INTO notifications (type, priority, title, message, related_id, related_type)
+            VALUES ('new_lead', 'medium', 'Consultation Logged',
+                    %s, %s, 'session')
+        """, (f"{lead_name} — {req.session_type} on {req.session_date} at {req.session_time}", session_id))
+
+        conn.commit(); cur.close(); conn.close()
+        return {"success": True, "session_id": session_id,
+                "message": f"Consultation logged for {lead_name}"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Bookings (Public Booking System) ────────────────────────
+
+@app.get("/api/availability")
+def get_availability(date: str = None):
+    """
+    Get available time slots for a given date.
+    Working hours: Mon-Sat, 10:00 AM to 5:00 PM IST, 30-min slots.
+    """
+    try:
+        conn = get_db(); cur = conn.cursor()
+        if not date:
+            date = date.today().isoformat()
+
+        # Define all possible slots (Mon-Sat, 10AM-5PM, 30min each)
+        all_slots = []
+        for hour in range(10, 17):  # 10 AM to 5 PM (last slot starts at 4:30 PM)
+            for minute in [0, 30]:
+                if hour == 17 and minute == 30:
+                    break  # No 5:30 PM slot
+                all_slots.append(f"{hour:02d}:{minute:02d}")
+
+        # Get booked slots for this date
+        cur.execute("""
+            SELECT booking_time FROM bookings
+            WHERE booking_date = %s AND status IN ('confirmed', 'rescheduled')
+        """, (date,))
+        booked_times = [str(row[0])[:5] for row in cur.fetchall()]
+
+        # Get day of week (0=Monday, 5=Saturday)
+        try:
+            from datetime import datetime as dt
+            day_of_week = dt.strptime(date, '%Y-%m-%d').weekday()
+        except:
+            day_of_week = 0
+
+        # Check if it's a weekend (Sunday)
+        is_sunday = day_of_week == 6
+
+        cur.close(); conn.close()
+
+        if is_sunday:
+            return {"date": date, "slots": [], "message": "No availability on Sundays"}
+
+        available = [
+            {"time": slot, "available": slot not in booked_times}
+            for slot in all_slots
+        ]
+
+        return {"date": date, "slots": available}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/bookings")
+def create_booking(booking: BookingCreate):
+    """Create a new public booking from the booking page."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+
+        # Check if slot is still available
+        cur.execute("""
+            SELECT id FROM bookings
+            WHERE booking_date = %s AND booking_time = %s
+            AND status IN ('confirmed', 'rescheduled')
+        """, (booking.booking_date, booking.booking_time))
+        if cur.fetchone():
+            cur.close(); conn.close()
+            raise HTTPException(status_code=409, detail="This time slot is already booked. Please choose another.")
+
+        # Create booking
+        cur.execute("""
+            INSERT INTO bookings (patient_name, patient_email, patient_phone,
+                                  health_goal, booking_date, booking_time, status)
+            VALUES (%s, %s, %s, %s, %s, %s, 'confirmed')
+            RETURNING id
+        """, (booking.patient_name, booking.patient_email, booking.patient_phone,
+              booking.health_goal, booking.booking_date, booking.booking_time))
+        booking_id = cur.fetchone()[0]
+
+        # Create notification for ops team
+        cur.execute("""
+            INSERT INTO notifications (type, priority, title, message, related_id, related_type)
+            VALUES ('new_lead', 'medium', 'New Booking Received',
+                    %s, %s, 'booking')
+        """, (f"{booking.patient_name} booked {booking.booking_date} at {booking.booking_time}", booking_id))
+
+        # Also create a lead record for tracking
+        cur.execute("""
+            INSERT INTO leads (name, email, phone, health_goal, status, notes)
+            VALUES (%s, %s, %s, %s, 'consultation_booked', %s)
+        """, (booking.patient_name, booking.patient_email, booking.patient_phone,
+              booking.health_goal, f"Auto-created from booking #{booking_id}"))
+
+        conn.commit(); cur.close(); conn.close()
+        return {"success": True, "booking_id": booking_id,
+                "message": f"Booking confirmed for {booking.booking_date} at {booking.booking_time}"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/bookings")
+def get_bookings(status: str = None, upcoming: bool = False):
+    """List all bookings for the Ops Dashboard."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        query = "SELECT id, patient_name, patient_email, patient_phone, health_goal, booking_date, booking_time, duration_minutes, meeting_link, status, assigned_doctor, notes, created_at FROM bookings"
+        conditions, params = [], []
+        if status:
+            conditions.append("status = %s"); params.append(status)
+        if upcoming:
+            conditions.append("booking_date >= CURRENT_DATE AND status = 'confirmed'")
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+        query += " ORDER BY booking_date DESC, booking_time DESC"
+        cur.execute(query, params); rows = cur.fetchall(); cur.close(); conn.close()
+        return {"bookings": [
+            {"id": r[0], "patient_name": r[1], "patient_email": r[2], "patient_phone": r[3],
+             "health_goal": r[4], "booking_date": str(r[5]), "booking_time": str(r[6]),
+             "duration_minutes": r[7], "meeting_link": r[8], "status": r[9],
+             "assigned_doctor": r[10], "notes": r[11], "created_at": str(r[12])}
+            for r in rows
+        ], "count": len(rows)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.put("/api/bookings/{booking_id}")
+def update_booking(booking_id: int, update: BookingUpdate):
+    """Update a booking (reschedule, cancel, assign doctor, etc.)."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        fields, values = [], []
+        for field in ["status", "booking_date", "booking_time", "meeting_link", "assigned_doctor", "notes"]:
+            val = getattr(update, field)
+            if val is not None:
+                fields.append(f"{field} = %s"); values.append(val)
+        if not fields:
+            raise HTTPException(status_code=400, detail="No fields to update")
+        values.append(booking_id)
+        cur.execute(f"UPDATE bookings SET {', '.join(fields)} WHERE id = %s", values)
+
+        # Create notification for status changes
+        if update.status:
+            cur.execute("SELECT patient_name, booking_date, booking_time FROM bookings WHERE id = %s", (booking_id,))
+            b = cur.fetchone()
+            if b:
+                status_msg = f"{b[0]}'s booking ({b[1]} at {b[2]}) updated to {update.status}"
+                cur.execute("""
+                    INSERT INTO notifications (type, priority, title, message, related_id, related_type)
+                    VALUES ('new_lead', 'medium', 'Booking Updated', %s, %s, 'booking')
+                """, (status_msg, booking_id))
+
+        conn.commit(); cur.close(); conn.close()
+        return {"success": True, "message": "Booking updated"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/bookings/{booking_id}")
+def cancel_booking(booking_id: int):
+    """Cancel a booking."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("UPDATE bookings SET status = 'cancelled' WHERE id = %s", (booking_id,))
+        conn.commit(); cur.close(); conn.close()
+        return {"success": True, "message": "Booking cancelled"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ── Prescriptions ────────────────────────────────────────────
 
 @app.post("/api/prescriptions")
@@ -1722,6 +2186,118 @@ def generate_notifications():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ── Google Calendar Sync ────────────────────────────────────
+
+@app.get("/api/google-calendar/sync")
+def sync_google_calendar(days_ahead: int = 7):
+    """
+    Fetch upcoming events from Google Calendar and auto-create/update bookings.
+    Returns the synced events with meeting links.
+    """
+    try:
+        events = fetch_google_calendar_events(days_ahead)
+        if not events:
+            return {"success": True, "events": [], "message": "No events found or Google Calendar not configured"}
+
+        conn = get_db(); cur = conn.cursor()
+        synced = []
+
+        for event in events:
+            if not event['start']:
+                continue
+
+            # Parse event start time
+            try:
+                start_str = event['start']
+                if 'T' in start_str:
+                    event_dt = datetime.fromisoformat(start_str.replace('Z', '+00:00'))
+                else:
+                    event_dt = datetime.strptime(start_str, '%Y-%m-%d')
+                event_date = event_dt.strftime('%Y-%m-%d')
+                event_time = event_dt.strftime('%H:%M')
+            except Exception as parse_err:
+                print(f"[GOOGLE CAL] Parse error for event: {parse_err}")
+                continue
+
+            # Check if this Google event already synced
+            cur.execute("""
+                SELECT id FROM bookings WHERE calendar_event_id = %s
+            """, (event['google_event_id'],))
+            existing = cur.fetchone()
+
+            if existing:
+                # Update meeting link if changed
+                if event['meeting_link']:
+                    cur.execute("""
+                        UPDATE bookings SET meeting_link = %s WHERE id = %s
+                        AND (meeting_link IS NULL OR meeting_link != %s)
+                    """, (event['meeting_link'], existing[0], event['meeting_link']))
+            else:
+                # Try to match with existing booking by date/time
+                cur.execute("""
+                    SELECT id FROM bookings
+                    WHERE booking_date = %s AND booking_time = %s
+                    AND status IN ('confirmed', 'rescheduled')
+                """, (event_date, event_time))
+                match = cur.fetchone()
+
+                if match:
+                    # Update existing booking with Google event data
+                    cur.execute("""
+                        UPDATE bookings
+                        SET calendar_event_id = %s, meeting_link = COALESCE(%s, meeting_link)
+                        WHERE id = %s
+                    """, (event['google_event_id'], event['meeting_link'], match[0]))
+                    booking_id = match[0]
+                else:
+                    # Create new booking from calendar event
+                    attendees = ', '.join(event['attendees'][:3]) if event['attendees'] else ''
+                    cur.execute("""
+                        INSERT INTO bookings (patient_name, patient_email, booking_date,
+                                              booking_time, meeting_link, calendar_event_id,
+                                              status, notes)
+                        VALUES (%s, %s, %s, %s, %s, %s, 'confirmed', %s)
+                        RETURNING id
+                    """, (
+                        event['summary'] or 'Calendar Event',
+                        attendees,
+                        event_date,
+                        event_time,
+                        event['meeting_link'],
+                        event['google_event_id'],
+                        f"Auto-synced from Google Calendar"
+                    ))
+                    booking_id = cur.fetchone()[0]
+
+            synced.append({
+                'summary': event['summary'],
+                'date': event_date,
+                'time': event_time,
+                'meeting_link': event['meeting_link'],
+            })
+
+        conn.commit(); cur.close(); conn.close()
+        return {
+            "success": True,
+            "events": synced,
+            "count": len(synced),
+            "message": f"Synced {len(synced)} event(s) from Google Calendar"
+        }
+    except Exception as e:
+        print(f"[GOOGLE CAL SYNC ERROR] {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/google-calendar/status")
+def google_calendar_status():
+    """Check if Google Calendar integration is configured."""
+    return {
+        "configured": bool(GOOGLE_SERVICE_ACCOUNT_JSON),
+        "calendar_id": GOOGLE_CALENDAR_ID,
+        "library_available": GOOGLE_CALENDAR_AVAILABLE,
+    }
+
+
 # ─────────────────────────────────────────────
 # ROOT
 # ─────────────────────────────────────────────
@@ -1741,6 +2317,8 @@ def root():
             "ops_prescriptions": ["/api/prescriptions", "/api/prescriptions/{id}/send"],
             "ops_plans": ["/api/patient-plans"],
             "ops_notifications": ["/api/notifications", "/api/notifications/generate",
-                                  "/api/notifications/{id}/read", "/api/notifications/read-all"]
+                                  "/api/notifications/{id}/read", "/api/notifications/read-all"],
+            "ops_bookings": ["/api/bookings", "/api/availability"],
+            "ops_google_calendar": ["/api/google-calendar/sync", "/api/google-calendar/status"]
         }
     }

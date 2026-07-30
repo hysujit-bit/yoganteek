@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { Badge } from '../common/Badge';
 import { Modal } from '../common/Modal';
-import { Calendar as CalendarIcon, Plus, Video, Share2, Mail, MessageSquare, Copy, Check, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, Video, Share2, Mail, MessageSquare, Copy, Check, Clock, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 export const SessionsModule = () => {
   const [sessions, setSessions] = useState([]);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState('list');
-  
+  const [activeTab, setActiveTab] = useState('upcoming');
+  const [error, setError] = useState(null);
+
   // Schedule Session Modal State
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [sessionForm, setSessionForm] = useState({
@@ -33,9 +34,10 @@ export const SessionsModule = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+      setError(null);
       const [sessionsData, patientsData] = await Promise.all([
-        api.getSessions(false).catch(() => []),
-        api.getPatients().catch(() => []),
+        api.getSessions(false).catch((err) => { console.error('Sessions fetch error:', err); return []; }),
+        api.getPatients().catch((err) => { console.error('Patients fetch error:', err); return []; }),
       ]);
       const sessionList = Array.isArray(sessionsData) ? sessionsData : sessionsData.sessions || [];
       const patientList = Array.isArray(patientsData) ? patientsData : patientsData.patients || [];
@@ -43,11 +45,9 @@ export const SessionsModule = () => {
       setPatients(patientList);
     } catch (err) {
       console.error('Failed to load sessions data', err);
-      // Fallback sample data
-      setSessions([
-        { id: 1, patient_name: 'Meera Singh', session_date: '2026-07-30', session_time: '10:30 AM', duration_minutes: 45, session_type: 'Prenatal Yoga Care', meeting_link: 'https://meet.google.com/abc-defg-hij', status: 'scheduled' },
-        { id: 2, patient_name: 'Rajesh Kumar', session_date: '2026-07-30', session_time: '02:00 PM', duration_minutes: 30, session_type: 'Pranayama Therapy', meeting_link: 'https://zoom.us/j/123456789', status: 'scheduled' },
-      ]);
+      setError('Failed to load sessions. The backend may be starting up.');
+      setSessions([]);
+      setPatients([]);
     } finally {
       setLoading(false);
     }
@@ -104,7 +104,7 @@ export const SessionsModule = () => {
   const openWhatsAppShare = () => {
     if (!selectedSession) return;
     const text = encodeURIComponent(
-      `Hello ${selectedSession.patient_name}, here are your session details with Dr. Jayashree:\n\n📅 Date: ${selectedSession.session_date}\n⏰ Time: ${selectedSession.session_time}\n🔗 Meeting Link: ${selectedSession.meeting_link || 'Link will be sent shortly'}\n\nLooking forward to seeing you!`
+      `Hello ${selectedSession.patient_name}, here are your session details with Dr. Jayashree:\n\nDate: ${selectedSession.session_date}\nTime: ${selectedSession.session_time}\nMeeting Link: ${selectedSession.meeting_link || 'Link will be sent shortly'}\n\nLooking forward to seeing you!`
     );
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
@@ -116,51 +116,118 @@ export const SessionsModule = () => {
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
+  const formatTime12 = (time24) => {
+    if (!time24) return '';
+    const [h, m] = time24.split(':');
+    const hr = parseInt(h, 10);
+    const ampm = hr >= 12 ? 'PM' : 'AM';
+    const h12 = hr % 12 || 12;
+    return `${h12}:${m} ${ampm}`;
+  };
+
+  const isUpcoming = (session) => {
+    const today = new Date().toISOString().split('T')[0];
+    return session.session_date >= today && session.status === 'scheduled';
+  };
+
+  const isPast = (session) => {
+    const today = new Date().toISOString().split('T')[0];
+    return session.session_date < today || session.status === 'completed' || session.status === 'no-show' || session.status === 'cancelled';
+  };
+
+  const filteredSessions = sessions.filter((s) => {
+    if (activeTab === 'upcoming') return isUpcoming(s);
+    if (activeTab === 'past') return isPast(s);
+    return true;
+  });
+
+  const upcomingCount = sessions.filter(isUpcoming).length;
+  const pastCount = sessions.filter(isPast).length;
+
+  const getStatusVariant = (status) => {
+    switch (status) {
+      case 'completed': return 'green';
+      case 'scheduled': return 'amber';
+      case 'cancelled': return 'red';
+      case 'no-show': return 'red';
+      default: return 'amber';
+    }
+  };
+
   return (
     <div>
       {/* Header Bar */}
       <div className="card" style={{ marginBottom: '1.5rem', padding: '1rem 1.25rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          {/* Tabs */}
           <div style={{ display: 'flex', gap: '0.4rem', background: 'var(--cream-bg)', padding: '3px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)' }}>
             <button
-              onClick={() => setViewMode('list')}
+              onClick={() => setActiveTab('upcoming')}
               style={{
                 padding: '0.4rem 0.85rem',
                 border: 'none',
                 borderRadius: 'var(--radius-sm)',
-                backgroundColor: viewMode === 'list' ? 'var(--forest-dark)' : 'transparent',
-                color: viewMode === 'list' ? '#FFF' : 'var(--text-main)',
-                fontWeight: viewMode === 'list' ? 600 : 400,
+                backgroundColor: activeTab === 'upcoming' ? 'var(--forest-dark)' : 'transparent',
+                color: activeTab === 'upcoming' ? '#FFF' : 'var(--text-main)',
+                fontWeight: activeTab === 'upcoming' ? 600 : 400,
                 fontSize: '0.82rem',
                 cursor: 'pointer',
               }}
             >
-              List View
+              Upcoming ({upcomingCount})
             </button>
             <button
-              onClick={() => setViewMode('calendar')}
+              onClick={() => setActiveTab('past')}
               style={{
                 padding: '0.4rem 0.85rem',
                 border: 'none',
                 borderRadius: 'var(--radius-sm)',
-                backgroundColor: viewMode === 'calendar' ? 'var(--forest-dark)' : 'transparent',
-                color: viewMode === 'calendar' ? '#FFF' : 'var(--text-main)',
-                fontWeight: viewMode === 'calendar' ? 600 : 400,
+                backgroundColor: activeTab === 'past' ? 'var(--forest-dark)' : 'transparent',
+                color: activeTab === 'past' ? '#FFF' : 'var(--text-main)',
+                fontWeight: activeTab === 'past' ? 600 : 400,
                 fontSize: '0.82rem',
                 cursor: 'pointer',
               }}
             >
-              Calendar Schedule
+              Past ({pastCount})
+            </button>
+            <button
+              onClick={() => setActiveTab('all')}
+              style={{
+                padding: '0.4rem 0.85rem',
+                border: 'none',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: activeTab === 'all' ? 'var(--forest-dark)' : 'transparent',
+                color: activeTab === 'all' ? '#FFF' : 'var(--text-main)',
+                fontWeight: activeTab === 'all' ? 600 : 400,
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+              }}
+            >
+              All ({sessions.length})
             </button>
           </div>
 
-          <button onClick={() => setAddModalOpen(true)} className="btn btn-forest">
-            <Plus size={16} /> Schedule Session
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button onClick={loadData} className="btn btn-outline btn-sm" title="Refresh" style={{ padding: '0.35rem 0.65rem' }}>
+              <RefreshCw size={14} className={loading ? 'spin' : ''} />
+            </button>
+            <button onClick={() => setAddModalOpen(true)} className="btn btn-forest">
+              <Plus size={16} /> Schedule Session
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Sessions List View */}
+      {/* Error Banner */}
+      {error && (
+        <div style={{ backgroundColor: '#FFEBEE', border: '1px solid #FFCDD2', borderRadius: 'var(--radius-sm)', padding: '0.85rem 1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <span style={{ fontSize: '0.85rem', color: '#D32F2F' }}>{error}</span>
+          <button onClick={loadData} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#D32F2F', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>Retry</button>
+        </div>
+      )}
+
+      {/* Sessions Table */}
       <div className="table-container">
         <table className="data-table">
           <thead>
@@ -178,22 +245,32 @@ export const SessionsModule = () => {
               <tr>
                 <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>Loading sessions...</td>
               </tr>
-            ) : sessions.length === 0 ? (
+            ) : filteredSessions.length === 0 ? (
               <tr>
                 <td colSpan="6" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
-                  No sessions scheduled yet.
+                  <CheckCircle2 size={36} color="var(--sage-primary)" style={{ marginBottom: '0.5rem' }} />
+                  <p>
+                    {activeTab === 'upcoming'
+                      ? 'No upcoming sessions scheduled.'
+                      : activeTab === 'past'
+                        ? 'No past sessions found.'
+                        : 'No sessions found. Click "Schedule Session" to add one.'}
+                  </p>
                 </td>
               </tr>
             ) : (
-              sessions.map((session) => (
-                <tr key={session.id}>
+              filteredSessions.map((session) => (
+                <tr key={session.id} style={{ backgroundColor: isPast(session) && session.status === 'completed' ? '#FAFFF9' : isPast(session) && session.status === 'no-show' ? '#FFFAF9' : undefined }}>
                   <td>
                     <div style={{ fontWeight: 600, color: 'var(--forest-dark)' }}>{session.patient_name}</div>
+                    {session.patient_email && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{session.patient_email}</div>}
                   </td>
                   <td>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 500 }}>{session.session_date}</div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 500 }}>
+                      {session.session_date}
+                    </div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                      <Clock size={12} /> {session.session_time} ({session.duration_minutes || 30} mins)
+                      <Clock size={12} /> {formatTime12(session.session_time)} ({session.duration_minutes || 30} mins)
                     </div>
                   </td>
                   <td>
@@ -211,11 +288,11 @@ export const SessionsModule = () => {
                         <Video size={13} color="var(--sage-primary)" /> Join Call
                       </a>
                     ) : (
-                      <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Pending Link</span>
+                      <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>No link yet</span>
                     )}
                   </td>
                   <td>
-                    <Badge variant={session.status === 'completed' ? 'green' : 'amber'}>
+                    <Badge variant={getStatusVariant(session.status)}>
                       {session.status || 'scheduled'}
                     </Badge>
                   </td>
@@ -228,7 +305,7 @@ export const SessionsModule = () => {
                       className="btn btn-primary btn-sm"
                       style={{ padding: '4px 10px', fontSize: '0.75rem', gap: '4px' }}
                     >
-                      <Share2 size={13} /> Share Call Details
+                      <Share2 size={13} /> Share
                     </button>
                   </td>
                 </tr>
@@ -295,7 +372,23 @@ export const SessionsModule = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Zoom / Google Meet URL</label>
+            <label className="form-label">Session Type</label>
+            <select
+              className="form-select"
+              value={sessionForm.session_type}
+              onChange={(e) => setSessionForm({ ...sessionForm, session_type: e.target.value })}
+            >
+              <option value="Free Consultation">Free Consultation</option>
+              <option value="Follow-up Consultation">Follow-up Consultation</option>
+              <option value="Initial Assessment">Initial Assessment</option>
+              <option value="Yoga Therapy Session">Yoga Therapy Session</option>
+              <option value="Group Session">Group Session</option>
+              <option value="Corporate Session">Corporate Session</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Zoom / Google Meet URL (optional)</label>
             <input
               type="url"
               className="form-input"
@@ -327,17 +420,16 @@ export const SessionsModule = () => {
             <div style={{ backgroundColor: 'var(--cream-bg)', padding: '1rem', borderRadius: 'var(--radius-sm)', marginBottom: '1.25rem' }}>
               <div style={{ fontWeight: 600, color: 'var(--forest-dark)' }}>{selectedSession.patient_name}</div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                📅 {selectedSession.session_date} at {selectedSession.session_time}
+                {selectedSession.session_date} at {formatTime12(selectedSession.session_time)}
               </div>
               {selectedSession.meeting_link && (
                 <div style={{ fontSize: '0.82rem', color: 'var(--sage-primary)', marginTop: '4px', wordBreak: 'break-all' }}>
-                  🔗 {selectedSession.meeting_link}
+                  {selectedSession.meeting_link}
                 </div>
               )}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {/* Option 1: Send Branded HTML Email */}
               <button
                 onClick={handleSendCallDetailsEmail}
                 className="btn btn-primary"
@@ -347,9 +439,8 @@ export const SessionsModule = () => {
                 <Mail size={18} />
                 <span>{sendingEmail ? 'Sending Email...' : 'Send Branded Email to Patient'}</span>
               </button>
-              {emailSent && <div style={{ color: 'var(--status-green)', fontSize: '0.8rem' }}>✓ Session details email dispatched to patient!</div>}
+              {emailSent && <div style={{ color: 'var(--status-green)', fontSize: '0.8rem' }}>Session details email dispatched to patient!</div>}
 
-              {/* Option 2: Share via WhatsApp */}
               <button
                 onClick={openWhatsAppShare}
                 className="btn btn-forest"
@@ -359,7 +450,6 @@ export const SessionsModule = () => {
                 <span>Share via WhatsApp</span>
               </button>
 
-              {/* Option 3: Copy Meeting Link */}
               <button
                 onClick={copyMeetingLink}
                 className="btn btn-outline"

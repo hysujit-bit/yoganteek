@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { Badge } from '../common/Badge';
 import { Modal } from '../common/Modal';
-import { Search, UserCheck, Calendar, FileText, Filter, CheckCircle2 } from 'lucide-react';
+import { Search, UserCheck, Calendar, FileText, Filter, CheckCircle2, Clock } from 'lucide-react';
 
 export const LeadsModule = ({ onNavigate }) => {
   const [leads, setLeads] = useState([]);
@@ -23,6 +23,17 @@ export const LeadsModule = ({ onNavigate }) => {
     coordinator: 'Dr. Jayashree Pattanaik',
   });
 
+  // Log Consultation Modal State
+  const [logModalOpen, setLogModalOpen] = useState(false);
+  const [logLead, setLogLead] = useState(null);
+  const [logForm, setLogForm] = useState({
+    session_date: new Date().toISOString().split('T')[0],
+    session_time: '10:00',
+    meeting_link: '',
+    session_type: 'Free Consultation',
+  });
+  const [logSaving, setLogSaving] = useState(false);
+
   const loadLeads = async () => {
     try {
       setLoading(true);
@@ -31,12 +42,7 @@ export const LeadsModule = ({ onNavigate }) => {
       setLeads(list);
     } catch (err) {
       console.error('Failed to load leads', err);
-      // Fallback sample data if API is starting up
-      setLeads([
-        { id: 1, type: 'lead', source: 'Website Form', name: 'Ananya Roy', email: 'ananya@example.com', phone: '+91 98765 43210', status: 'new', created_at: '2026-07-29', notes: 'Interested in prenatal yoga care.' },
-        { id: 2, type: 'contact', source: 'Meta Ad Inquiry', name: 'Karan Sharma', email: 'karan@example.com', phone: '+91 91234 56789', status: 'contacted', created_at: '2026-07-28', notes: 'Spoke on phone, wants follow-up consultation.' },
-        { id: 3, type: 'corporate', source: 'Corporate Proposal', name: 'TechCorp Wellness Team', email: 'hr@techcorp.com', phone: '+91 99887 76655', status: 'consultation_booked', created_at: '2026-07-26', notes: 'Requested 50-person corporate yoga workshop proposal.' },
-      ]);
+      setLeads([]);
     } finally {
       setLoading(false);
     }
@@ -86,6 +92,33 @@ export const LeadsModule = ({ onNavigate }) => {
       if (onNavigate) onNavigate('patients');
     } catch (err) {
       alert(`Failed to convert lead: ${err.message}`);
+    }
+  };
+
+  const openLogConsultation = (lead) => {
+    setLogLead(lead);
+    setLogForm({
+      session_date: new Date().toISOString().split('T')[0],
+      session_time: '10:00',
+      meeting_link: '',
+      session_type: 'Free Consultation',
+    });
+    setLogModalOpen(true);
+  };
+
+  const handleLogConsultation = async (e) => {
+    e.preventDefault();
+    if (!logLead) return;
+    try {
+      setLogSaving(true);
+      await api.logConsultation(logLead.id, logForm);
+      setLogModalOpen(false);
+      alert(`Consultation logged for ${logLead.name} on ${logForm.session_date}!`);
+      loadLeads();
+    } catch (err) {
+      alert(`Failed to log consultation: ${err.message}`);
+    } finally {
+      setLogSaving(false);
     }
   };
 
@@ -215,19 +248,31 @@ export const LeadsModule = ({ onNavigate }) => {
                     </select>
                   </td>
                   <td>
-                    {lead.status === 'converted' ? (
-                      <span style={{ fontSize: '0.8rem', color: 'var(--status-green)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <CheckCircle2 size={14} /> Patient Profile Created
-                      </span>
-                    ) : (
-                      <button
-                        onClick={() => openConvertModal(lead)}
-                        className="btn btn-primary btn-sm"
-                        style={{ padding: '4px 10px', fontSize: '0.75rem', gap: '4px' }}
-                      >
-                        <UserCheck size={14} /> Convert to Patient
-                      </button>
-                    )}
+                    <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                      {lead.status !== 'converted' && lead.status !== 'not_interested' && (
+                        <button
+                          onClick={() => openLogConsultation(lead)}
+                          className="btn btn-outline btn-sm"
+                          style={{ padding: '3px 8px', fontSize: '0.72rem', gap: '3px' }}
+                          title="Log consultation details from Calendly"
+                        >
+                          <Calendar size={12} /> Log Consultation
+                        </button>
+                      )}
+                      {lead.status === 'converted' ? (
+                        <span style={{ fontSize: '0.78rem', color: 'var(--status-green)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                          <CheckCircle2 size={13} /> Converted
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => openConvertModal(lead)}
+                          className="btn btn-primary btn-sm"
+                          style={{ padding: '3px 8px', fontSize: '0.72rem', gap: '3px' }}
+                        >
+                          <UserCheck size={12} /> Convert
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))
@@ -302,6 +347,76 @@ export const LeadsModule = ({ onNavigate }) => {
             </button>
             <button type="submit" className="btn btn-primary">
               Create Patient Profile
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Log Consultation Modal */}
+      <Modal
+        isOpen={logModalOpen}
+        onClose={() => setLogModalOpen(false)}
+        title={`Log Consultation — ${logLead?.name}`}
+      >
+        <form onSubmit={handleLogConsultation}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
+            Enter the consultation details from the Calendly confirmation. This will create a session record in the dashboard.
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="form-group">
+              <label className="form-label">Consultation Date</label>
+              <input
+                type="date"
+                className="form-input"
+                value={logForm.session_date}
+                onChange={(e) => setLogForm({ ...logForm, session_date: e.target.value })}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Consultation Time</label>
+              <input
+                type="time"
+                className="form-input"
+                value={logForm.session_time}
+                onChange={(e) => setLogForm({ ...logForm, session_time: e.target.value })}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Session Type</label>
+            <select
+              className="form-select"
+              value={logForm.session_type}
+              onChange={(e) => setLogForm({ ...logForm, session_type: e.target.value })}
+            >
+              <option value="Free Consultation">Free Consultation</option>
+              <option value="Follow-up Consultation">Follow-up Consultation</option>
+              <option value="Initial Assessment">Initial Assessment</option>
+              <option value="Yoga Therapy Session">Yoga Therapy Session</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Meeting Link (optional)</label>
+            <input
+              type="url"
+              className="form-input"
+              value={logForm.meeting_link}
+              onChange={(e) => setLogForm({ ...logForm, meeting_link: e.target.value })}
+              placeholder="https://meet.google.com/... or https://zoom.us/j/..."
+            />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+            <button type="button" onClick={() => setLogModalOpen(false)} className="btn btn-outline">
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary" disabled={logSaving}>
+              {logSaving ? 'Saving...' : 'Save Consultation'}
             </button>
           </div>
         </form>

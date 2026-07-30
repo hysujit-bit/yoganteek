@@ -357,7 +357,7 @@ CREATE TABLE patient_plans (
 - PWA features: `manifest.json`, Service Worker caching, iOS/Android home screen install support
 - Dual Navigation Shell: Desktop Forest Green Sidebar + Mobile Fixed Bottom Navigation Bar
 - Passcode Auth Guard (SHA-256 hash check stored in `localStorage`)
-- Axios API service connecting to shared Render backend (`https://yoganteek-backend.onrender.com`)
+- Axios API service connecting to shared Render backend (`https://yoganteek-api.onrender.com`)
 
 ---
 
@@ -377,8 +377,8 @@ Follows Yoganteek's existing brand:
 
 ### Vercel Deployment & Subdomain Setup
 1. **GitHub Integration:** Push repository to GitHub. Connect `ops-dashboard/` root folder to a new Vercel Project.
-2. **Domain Setup:** In Vercel Project Settings → Domains → Add `ops.yoganteek.com`.
-3. **DNS Record:** In domain registrar (cPanel DNS Manager / Cloudflare), add `CNAME` for `ops` pointing to `cname.vercel-dns.com`.
+2. **Temporary Vercel Domain:** Vercel automatically provides a preview domain (e.g., `<project>.vercel.app`) which can be used for testing.
+3. **Custom Domain (optional):** When ready, add `ops.yoganteek.com` in Vercel Project Settings → Domains and configure the CNAME record.
 4. **Environment Variables:** Set `VITE_API_BASE_URL` in Vercel to point to your Render backend API.
 
 ### Database

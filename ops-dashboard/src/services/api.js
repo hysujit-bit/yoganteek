@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base API setup — proxies /api in local dev, points to Render API in production
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://yoganteek-backend.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://yoganteek-api.onrender.com';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -68,6 +68,19 @@ export const api = {
   markNotificationRead: (id) => apiClient.put(`/api/notifications/${id}/read`),
   markAllNotificationsRead: () => apiClient.put('/api/notifications/read-all'),
   generateNotifications: () => apiClient.post('/api/notifications/generate'),
+
+  // Calendly / Consultation Logging
+  logConsultation: (leadId, data) => apiClient.post(`/api/leads/${leadId}/log-consultation`, data),
+
+  // Bookings (Custom Booking System)
+  getBookings: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiClient.get(`/api/bookings${query ? '?' + query : ''}`);
+  },
+  createBooking: (data) => apiClient.post('/api/bookings', data),
+  updateBooking: (id, data) => apiClient.put(`/api/bookings/${id}`, data),
+  cancelBooking: (id) => apiClient.delete(`/api/bookings/${id}`),
+  getAvailability: (date) => apiClient.get(`/api/availability?date=${date}`),
 };
 
 export default api;

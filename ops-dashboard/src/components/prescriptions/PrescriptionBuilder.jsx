@@ -64,6 +64,26 @@ export const PrescriptionBuilder = () => {
     setBreathingExercises(breathingExercises.filter((_, i) => i !== index));
   };
 
+  const addNutritionMeal = () => {
+    setNutritionPlan([...nutritionPlan, { meal: '', items: [''], notes: '' }]);
+  };
+
+  const removeNutritionMeal = (index) => {
+    setNutritionPlan(nutritionPlan.filter((_, i) => i !== index));
+  };
+
+  const addNutritionItem = (mealIndex) => {
+    const copy = [...nutritionPlan];
+    copy[mealIndex].items = [...copy[mealIndex].items, ''];
+    setNutritionPlan(copy);
+  };
+
+  const removeNutritionItem = (mealIndex, itemIndex) => {
+    const copy = [...nutritionPlan];
+    copy[mealIndex].items = copy[mealIndex].items.filter((_, i) => i !== itemIndex);
+    setNutritionPlan(copy);
+  };
+
   const handleSaveAndSend = async () => {
     if (!selectedPatientId) {
       alert('Please select a patient before sending.');
@@ -260,6 +280,73 @@ export const PrescriptionBuilder = () => {
             </div>
           )}
 
+          {/* Tab 3: Nutrition Plan */}
+          {activeBuilderTab === 'nutrition' && (
+            <div>
+              {nutritionPlan.map((meal, mealIndex) => (
+                <div key={mealIndex} style={{ padding: '0.75rem', background: 'var(--cream-bg)', borderRadius: 'var(--radius-sm)', marginBottom: '0.75rem' }}>
+                  <div className="form-group" style={{ marginBottom: '0.4rem' }}>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Meal Name (e.g. Morning, Lunch, Dinner)"
+                      value={meal.meal}
+                      onChange={(e) => {
+                        const copy = [...nutritionPlan];
+                        copy[mealIndex].meal = e.target.value;
+                        setNutritionPlan(copy);
+                      }}
+                    />
+                  </div>
+                  <div style={{ marginBottom: '0.5rem' }}>
+                    <label className="form-label" style={{ fontSize: '0.75rem' }}>Food Items</label>
+                    {meal.items.map((item, itemIndex) => (
+                      <div key={itemIndex} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Food item (e.g. Warm water with lemon)"
+                          value={item}
+                          onChange={(e) => {
+                            const copy = [...nutritionPlan];
+                            copy[mealIndex].items[itemIndex] = e.target.value;
+                            setNutritionPlan(copy);
+                          }}
+                          style={{ flex: 1 }}
+                        />
+                        <button onClick={() => removeNutritionItem(mealIndex, itemIndex)} style={{ background: 'none', border: 'none', color: '#D32F2F', cursor: 'pointer' }}>
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                    <button onClick={() => addNutritionItem(mealIndex)} className="btn btn-outline btn-sm" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+                      <Plus size={12} /> Add Item
+                    </button>
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Notes (optional)"
+                      value={meal.notes}
+                      onChange={(e) => {
+                        const copy = [...nutritionPlan];
+                        copy[mealIndex].notes = e.target.value;
+                        setNutritionPlan(copy);
+                      }}
+                    />
+                  </div>
+                  <button onClick={() => removeNutritionMeal(mealIndex)} style={{ background: 'none', border: 'none', color: '#D32F2F', cursor: 'pointer', fontSize: '0.75rem', marginTop: '0.3rem' }}>
+                    Remove Meal
+                  </button>
+                </div>
+              ))}
+              <button onClick={addNutritionMeal} className="btn btn-outline btn-sm" style={{ width: '100%' }}>
+                <Plus size={14} /> Add Meal
+              </button>
+            </div>
+          )}
+
           {/* Tab 4: Lifestyle */}
           {activeBuilderTab === 'lifestyle' && (
             <div className="form-group">
@@ -328,6 +415,19 @@ export const PrescriptionBuilder = () => {
               {breathingExercises.map((b, i) => (
                 <div key={i} style={{ fontSize: '0.85rem', marginBottom: '4px' }}>
                   • <strong>{b.name}</strong> ({b.reps})
+                </div>
+              ))}
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{ fontWeight: 700, color: 'var(--forest-dark)', marginBottom: '0.5rem' }}>🥗 Nutrition Plan:</div>
+              {nutritionPlan.map((meal, i) => (
+                <div key={i} style={{ fontSize: '0.85rem', marginBottom: '8px', paddingLeft: '0.5rem', borderLeft: '2px solid var(--sage-primary)' }}>
+                  <div style={{ fontWeight: 600 }}>{meal.meal || 'Meal'}:</div>
+                  {meal.items.map((item, j) => (
+                    <div key={j} style={{ marginLeft: '1rem' }}>• {item}</div>
+                  ))}
+                  {meal.notes && <div style={{ marginLeft: '1rem', fontStyle: 'italic', color: 'var(--text-muted)' }}>Note: {meal.notes}</div>}
                 </div>
               ))}
             </div>

@@ -34,10 +34,7 @@ export const PlansModule = () => {
       setPatients(Array.isArray(patientsData) ? patientsData : patientsData.patients || []);
     } catch (err) {
       console.error('Failed to load plans data', err);
-      setPlans([
-        { id: 1, patient_name: 'Meera Singh', service_name: 'Postnatal Rehabilitation Care', plan_type: 'Individual 12-Session', sessions_completed: 4, sessions_total: 12, amount_paid: 15000, payment_status: 'paid', start_date: '2026-07-01' },
-        { id: 2, patient_name: 'Rajesh Kumar', service_name: 'Hypertension Yoga Therapy', plan_type: 'Individual 8-Session', sessions_completed: 6, sessions_total: 8, amount_paid: 10000, payment_status: 'paid', start_date: '2026-07-10' },
-      ]);
+      setPlans([]);
     } finally {
       setLoading(false);
     }

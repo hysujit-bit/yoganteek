@@ -7,7 +7,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'https://yoganteek-backend.onrender.com',
+        target: 'https://yoganteek-api.onrender.com',
         changeOrigin: true,
         secure: false,
       },

@@ -39,11 +39,7 @@ export const PatientsModule = () => {
       setPatients(list);
     } catch (err) {
       console.error('Failed to load patients', err);
-      // Fallback sample data
-      setPatients([
-        { id: 1, name: 'Meera Singh', email: 'meera@example.com', phone: '+91 98111 22233', status: 'active', coordinator: 'Dr. Jayashree Pattanaik', health_goals: 'Postnatal rehabilitation & yoga therapy', medical_history: 'L4-L5 lumbar discomfort', created_at: '2026-07-15' },
-        { id: 2, name: 'Rajesh Kumar', email: 'rajesh@example.com', phone: '+91 98222 33344', status: 'active', coordinator: 'Dr. Jayashree Pattanaik', health_goals: 'Hypertension control & pranayama', medical_history: 'Mild hypertension', created_at: '2026-07-20' },
-      ]);
+      setPatients([]);
     } finally {
       setLoading(false);
     }

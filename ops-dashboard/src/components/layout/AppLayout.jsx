@@ -8,6 +8,7 @@ import {
   Calendar,
   Pill,
   Package,
+  CalendarCheck,
   Bell,
   LogOut,
   X,
@@ -22,6 +23,7 @@ export const AppLayout = ({ activeTab, setActiveTab, children }) => {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'bookings', label: 'Bookings', icon: CalendarCheck },
     { id: 'leads', label: 'Leads & Enquiries', icon: Users },
     { id: 'patients', label: 'Patients', icon: ClipboardList },
     { id: 'sessions', label: 'Sessions', icon: Calendar },
@@ -32,6 +34,7 @@ export const AppLayout = ({ activeTab, setActiveTab, children }) => {
 
   const mobileNavItems = [
     { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
+    { id: 'bookings', label: 'Bookings', icon: CalendarCheck },
     { id: 'leads', label: 'Leads', icon: Users },
     { id: 'patients', label: 'Patients', icon: ClipboardList },
     { id: 'sessions', label: 'Sessions', icon: Calendar },
