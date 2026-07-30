@@ -1365,20 +1365,16 @@ form.addEventListener('submit', (e) => {
         localStorage.setItem('yoganteek_lead', JSON.stringify(formData));
     });
 
-    // Transition to Step 2 after brief delay
+    // Redirect to booking page with pre-filled data
+    const params = new URLSearchParams({
+        name:  formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        goal:  formData.health_goal
+    });
     setTimeout(() => {
-        document.getElementById('step-1').classList.add('hidden');
-        document.getElementById('step-2').classList.remove('hidden');
-
-        // Initialize Calendly inline widget with pre-filled email & name
-        Calendly.initInlineWidget({
-            url: 'https://calendly.com/yoganteekwellness/30min?email=' + encodeURIComponent(formData.email) + '&name=' + encodeURIComponent(formData.name),
-            parentElement: document.getElementById('calendly-widget')
-        });
-
-        // Scroll to the form section
-        document.getElementById('booking-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 800);
+        window.location.href = 'book-consultation.html?' + params.toString();
+    }, 500);
 });
 </script>
 <script src="./components/booking-modal.js"></script>
