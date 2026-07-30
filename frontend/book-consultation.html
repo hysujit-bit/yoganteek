@@ -320,9 +320,11 @@
       selectedTime = null;
       document.getElementById('step1-next').disabled = true;
 
+      /* Parse date directly to avoid timezone issues */
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const dateObj = new Date(year, month - 1, day);
       const display = document.getElementById('selected-date-display');
-      const d = new Date(dateStr + 'T00:00:00');
-      display.textContent = d.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      display.textContent = dateObj.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Kolkata' });
 
       document.getElementById('slots-section').style.display = 'block';
       document.getElementById('slots-grid').innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading available times...</p></div>';
@@ -330,29 +332,47 @@
       try {
         const res = await fetch(API_BASE + '/api/availability?date=' + dateStr);
         const data = await res.json();
-        renderSlots(data.slots || []);
+        renderSlots(data.slots || [], dateStr);
       } catch (err) {
         document.getElementById('slots-grid').innerHTML = '<p style="color:var(--status-red);font-size:.85rem;">Failed to load availability. Please try again.</p>';
       }
     }
 
-    function renderSlots(slots) {
+    function renderSlots(slots, dateStr) {
       const grid = document.getElementById('slots-grid');
       grid.innerHTML = '';
       if (slots.length === 0) {
         grid.innerHTML = '<p style="color:var(--text-light);font-size:.85rem;">No available slots for this date.</p>';
         return;
       }
+
+      /* Check if this date is today (IST) */
+      const now = new Date();
+      const istOffset = 5.5 * 60 * 60 * 1000;
+      const istNow = new Date(now.getTime() + istOffset);
+      const todayStr = istNow.toISOString().split('T')[0];
+      const isToday = dateStr === todayStr;
+      const currentHour = istNow.getHours();
+      const currentMinute = istNow.getMinutes();
+
       slots.forEach(slot => {
         const btn = document.createElement('button');
         btn.className = 'slot-btn';
         const hr = parseInt(slot.time.split(':')[0]);
-        const min = slot.time.split(':')[1];
+        const min = parseInt(slot.time.split(':')[1]);
         const ampm = hr >= 12 ? 'PM' : 'AM';
         const h12 = hr % 12 || 12;
-        btn.textContent = h12 + ':' + min + ' ' + ampm;
+        btn.textContent = h12 + ':' + String(min).padStart(2, '0') + ' ' + ampm;
 
-        if (!slot.available) {
+        /* Check if slot is in the past (for today only) */
+        const isPast = isToday && (hr < currentHour || (hr === currentHour && min <= currentMinute));
+
+        if (isPast) {
+          btn.classList.add('booked');
+          btn.disabled = true;
+          btn.style.opacity = '0.4';
+          btn.style.textDecoration = 'line-through';
+        } else if (!slot.available) {
           btn.classList.add('booked');
           btn.disabled = true;
         } else {
@@ -420,8 +440,10 @@
         const min = selectedTime.split(':')[1];
         const ampm = hr >= 12 ? 'PM' : 'AM';
         const h12 = hr % 12 || 12;
-        const dateObj = new Date(selectedDate + 'T00:00:00');
-        const dateStr = dateObj.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        /* Parse date directly to avoid timezone issues */
+        const [year, month, day] = selectedDate.split('-').map(Number);
+        const dateObj = new Date(year, month - 1, day);
+        const dateStr = dateObj.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Kolkata' });
 
         document.getElementById('c-name').textContent = payload.patient_name;
         document.getElementById('c-date').textContent = dateStr;

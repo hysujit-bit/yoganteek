@@ -1684,6 +1684,7 @@ def get_availability(date: str = None):
     """
     Get available time slots for a given date.
     Working hours: Mon-Sat, 10:00 AM to 5:00 PM IST, 30-min slots.
+    Checks both bookings and sessions tables for booked slots.
     """
     try:
         conn = get_db(); cur = conn.cursor()
@@ -1698,14 +1699,24 @@ def get_availability(date: str = None):
                     break  # No 5:30 PM slot
                 all_slots.append(f"{hour:02d}:{minute:02d}")
 
-        # Get booked slots for this date
+        # Get booked slots from bookings table
         cur.execute("""
             SELECT booking_time FROM bookings
             WHERE booking_date = %s AND status IN ('confirmed', 'rescheduled')
         """, (date,))
-        booked_times = [str(row[0])[:5] for row in cur.fetchall()]
+        booked_from_bookings = [str(row[0])[:5] for row in cur.fetchall()]
 
-        # Get day of week (0=Monday, 5=Saturday)
+        # Get booked slots from sessions table
+        cur.execute("""
+            SELECT session_time FROM sessions
+            WHERE session_date = %s AND status = 'scheduled'
+        """, (date,))
+        booked_from_sessions = [str(row[0])[:5] for row in cur.fetchall()]
+
+        # Combine both lists
+        booked_times = list(set(booked_from_bookings + booked_from_sessions))
+
+        # Get day of week (0=Monday, 6=Sunday)
         try:
             from datetime import datetime as dt
             day_of_week = dt.strptime(date, '%Y-%m-%d').weekday()
