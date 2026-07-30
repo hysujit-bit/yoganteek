@@ -2449,7 +2449,13 @@ def test_create_calendar_event():
     })
     if not service:
         results["error"] = "Failed to build Google Calendar service"
-        return results
+    return results
+
+
+@app.get("/api/keepalive")
+def keepalive():
+    """Keep-alive endpoint to prevent Render free tier from sleeping."""
+    return {"status": "ok", "timestamp": datetime.utcnow().isoformat()}
 
     # Step 3: Try to create a test event
     try:
