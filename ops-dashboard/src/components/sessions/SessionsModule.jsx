@@ -147,16 +147,13 @@ export const SessionsModule = () => {
   const SortIcon = ({ columnKey }) => {
     if (!sortConfig || sortConfig.key !== columnKey) return null;
     return sortConfig.direction === 'asc'
-      ? <ArrowUp size={13} style={{ marginLeft: '3px' }} />
-      : <ArrowDown size={13} style={{ marginLeft: '3px' }} />;
+      ? <ArrowUp size={13} style={{ marginLeft: '4px', verticalAlign: 'middle' }} />
+      : <ArrowDown size={13} style={{ marginLeft: '4px', verticalAlign: 'middle' }} />;
   };
 
   const thStyle = (key) => ({
     cursor: 'pointer',
     userSelect: 'none',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '2px',
   });
 
   const upcomingCount = sessions.filter(isUpcoming).length;
