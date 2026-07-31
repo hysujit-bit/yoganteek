@@ -4,6 +4,7 @@ import { useSortableData } from '../../hooks/useSortableData';
 import { Badge } from '../common/Badge';
 import { Modal } from '../common/Modal';
 import { Search, Plus, User, Mail, Phone, Calendar, Heart, Share2, FileText, Check, ArrowUp, ArrowDown } from 'lucide-react';
+import { shareText } from '../../utils/share';
 
 export const PatientsModule = () => {
   const [patients, setPatients] = useState([]);
@@ -86,6 +87,25 @@ export const PatientsModule = () => {
       alert(`Failed to share brief: ${err.message}`);
     } finally {
       setSharing(false);
+    }
+  };
+
+  const handleSharePatient = async (patient) => {
+    const lines = [
+      'Patient Profile — Yoganteek Wellness',
+      '',
+      `Name: ${patient.name || '-'}`,
+      `Phone: ${patient.phone || '-'}`,
+      `Email: ${patient.email || '-'}`,
+      `Gender: ${patient.gender || '-'}`,
+      `Health Goals: ${patient.health_goals || '-'}`,
+      `Medical History: ${patient.medical_history || '-'}`,
+      `Coordinator: ${patient.coordinator || '-'}`,
+    ];
+    try {
+      await shareText(lines.join('\n'), `Patient — ${patient.name}`);
+    } catch {
+      // user cancelled share
     }
   };
 
@@ -182,15 +202,24 @@ export const PatientsModule = () => {
                     </Badge>
                   </td>
                   <td>
-                    <button
-                      onClick={() => {
-                        setSelectedPatient(patient);
-                        setProfileModalOpen(true);
-                      }}
-                      className="btn btn-outline btn-sm"
-                    >
-                      <User size={14} /> Full Profile
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.35rem' }}>
+                      <button
+                        onClick={() => {
+                          setSelectedPatient(patient);
+                          setProfileModalOpen(true);
+                        }}
+                        className="btn btn-outline btn-sm"
+                      >
+                        <User size={14} /> Full Profile
+                      </button>
+                      <button
+                        onClick={() => handleSharePatient(patient)}
+                        className="btn btn-outline btn-sm"
+                        title="Share patient details"
+                      >
+                        <Share2 size={14} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -241,6 +270,13 @@ export const PatientsModule = () => {
                   className="btn btn-outline btn-sm"
                 >
                   <User size={12} /> Full Profile
+                </button>
+                <button
+                  onClick={() => handleSharePatient(patient)}
+                  className="btn btn-outline btn-sm"
+                  title="Share patient details"
+                >
+                  <Share2 size={12} />
                 </button>
               </div>
             </div>

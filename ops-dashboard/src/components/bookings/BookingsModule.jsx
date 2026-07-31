@@ -3,7 +3,8 @@ import api from '../../services/api';
 import { useSortableData } from '../../hooks/useSortableData';
 import { Badge } from '../common/Badge';
 import { Modal } from '../common/Modal';
-import { Calendar, Clock, User, Phone, Mail, Edit2, XCircle, CheckCircle2, Video, RefreshCw, AlertCircle, ArrowUp, ArrowDown } from 'lucide-react';
+import { Calendar, Clock, User, Phone, Mail, Edit2, XCircle, CheckCircle2, Video, RefreshCw, AlertCircle, ArrowUp, ArrowDown, Share2 } from 'lucide-react';
+import { shareText } from '../../utils/share';
 
 export const BookingsModule = () => {
   const [bookings, setBookings] = useState([]);
@@ -70,6 +71,24 @@ export const BookingsModule = () => {
     const ampm = hr >= 12 ? 'PM' : 'AM';
     const h12 = hr % 12 || 12;
     return `${h12}:${m} ${ampm}`;
+  };
+
+  const handleShareBooking = async (b) => {
+    const lines = [
+      'Upcoming Session — Yoganteek Wellness',
+      '',
+      `Patient: ${b.patient_name || '-'}`,
+      `Date: ${b.booking_date || '-'}`,
+      `Time: ${formatTime12(b.booking_time) || '-'}`,
+      `Doctor: ${b.assigned_doctor || '-'}`,
+      `Meeting Link: ${b.meeting_link || 'Link will be shared shortly'}`,
+      `Status: ${b.status || '-'}`,
+    ];
+    try {
+      await shareText(lines.join('\n'), `Session — ${b.patient_name}`);
+    } catch {
+      // user cancelled share
+    }
   };
 
   const isUpcoming = (b) => {
@@ -316,6 +335,14 @@ export const BookingsModule = () => {
                       >
                         <Edit2 size={12} /> Edit
                       </button>
+                      <button
+                        onClick={() => handleShareBooking(b)}
+                        className="btn btn-outline btn-sm"
+                        style={{ padding: '3px 8px', fontSize: '0.72rem', gap: '3px' }}
+                        title="Share session details"
+                      >
+                        <Share2 size={12} />
+                      </button>
                       {b.status !== 'cancelled' && (
                         <button
                           onClick={() => handleCancel(b)}
@@ -388,6 +415,9 @@ export const BookingsModule = () => {
                 ) : (
                   <button className="btn btn-outline btn-sm" disabled style={{ flex: 1 }}>No Link</button>
                 )}
+                <button onClick={() => handleShareBooking(b)} className="btn btn-outline btn-sm" title="Share session details">
+                  <Share2 size={13} />
+                </button>
                 <button onClick={() => openEditModal(b)} className="btn btn-outline btn-sm" style={{ gap: '3px' }}>
                   <Edit2 size={13} /> Edit
                 </button>

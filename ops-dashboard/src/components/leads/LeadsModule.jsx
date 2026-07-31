@@ -4,7 +4,8 @@ import { useSortableData } from '../../hooks/useSortableData';
 import { Badge } from '../common/Badge';
 import { Modal } from '../common/Modal';
 import { Toast } from '../common/Toast';
-import { Search, UserCheck, Calendar, CheckCircle2, Loader2, ArrowUp, ArrowDown, Mail, Phone, Info } from 'lucide-react';
+import { Search, UserCheck, Calendar, CheckCircle2, Loader2, ArrowUp, ArrowDown, Mail, Phone, Info, Share2 } from 'lucide-react';
+import { shareText } from '../../utils/share';
 
 export const LeadsModule = ({ onNavigate }) => {
   const [leads, setLeads] = useState([]);
@@ -92,6 +93,25 @@ export const LeadsModule = ({ onNavigate }) => {
       coordinator: lead.coordinator || 'Dr. Jayashree Pattanaik',
     });
     setConvertModalOpen(true);
+  };
+
+  const handleShareLead = async (lead) => {
+    const lines = [
+      'Lead Details — Yoganteek Wellness',
+      '',
+      `Name: ${lead.name || '-'}`,
+      `Phone: ${lead.phone || '-'}`,
+      `Email: ${lead.email || '-'}`,
+      `Source: ${lead.type || '-'}`,
+      `Status: ${lead.status || '-'}`,
+      `Health Goal: ${lead.health_goal || '-'}`,
+      `Concern: ${lead.concern || '-'}`,
+    ];
+    try {
+      await shareText(lines.join('\n'), `Lead — ${lead.name}`);
+    } catch {
+      // user cancelled share
+    }
   };
 
   const handleConvertSubmit = async (e) => {
@@ -277,6 +297,14 @@ export const LeadsModule = ({ onNavigate }) => {
                         >
                           <Info size={12} /> Details
                         </button>
+                        <button
+                          onClick={() => handleShareLead(lead)}
+                          className="btn btn-outline btn-sm"
+                          style={{ padding: '3px 8px', fontSize: '0.72rem', gap: '3px' }}
+                          title="Share lead details"
+                        >
+                          <Share2 size={12} />
+                        </button>
                         {lead.status !== 'converted' && lead.status !== 'not_interested' && (
                           <button
                             onClick={() => openLogConsultation(lead)}
@@ -371,6 +399,9 @@ export const LeadsModule = ({ onNavigate }) => {
                 <div className="booking-card-actions">
                   <button onClick={() => setDetailLead(lead)} className="btn btn-outline btn-sm" style={{ gap: '3px' }}>
                     <Info size={12} /> Details
+                  </button>
+                  <button onClick={() => handleShareLead(lead)} className="btn btn-outline btn-sm" title="Share lead details">
+                    <Share2 size={12} />
                   </button>
                   {lead.status !== 'converted' && lead.status !== 'not_interested' && (
                     <button onClick={() => openLogConsultation(lead)} className="btn btn-outline btn-sm" style={{ gap: '3px' }}>
