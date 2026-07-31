@@ -1032,6 +1032,23 @@ def ensure_bookings_table():
                 created_at TIMESTAMP DEFAULT NOW()
             )
         """)
+        # Clean up existing duplicates before adding unique constraint (keep earliest created_at)
+        cur.execute("""
+            DELETE FROM bookings
+            WHERE id NOT IN (
+                SELECT MIN(id) FROM bookings
+                GROUP BY patient_email, booking_date, booking_time
+            )
+        """)
+        deleted = cur.rowcount
+        if deleted:
+            print(f"[DB] Cleaned up {deleted} duplicate booking(s)")
+        # Dedup: prevent same person booking same slot twice (only for active bookings)
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_bookings_dedup
+            ON bookings (patient_email, booking_date, booking_time)
+            WHERE status IN ('confirmed', 'rescheduled')
+        """)
         conn.commit(); cur.close(); conn.close()
         print("[DB] bookings table ready")
     except Exception as e:
@@ -1835,6 +1852,16 @@ def create_booking(booking: BookingCreate):
             cur.close(); conn.close()
             raise HTTPException(status_code=409, detail="This time slot is already booked. Please choose another.")
 
+        # Prevent same person booking same slot twice (double-submit / race condition)
+        cur.execute("""
+            SELECT id FROM bookings
+            WHERE patient_email = %s AND booking_date = %s AND booking_time = %s
+            AND status IN ('confirmed', 'rescheduled')
+        """, (booking.patient_email, booking.booking_date, booking.booking_time))
+        if cur.fetchone():
+            cur.close(); conn.close()
+            raise HTTPException(status_code=409, detail="You already have a booking for this time slot.")
+
         # Create booking
         cur.execute("""
             INSERT INTO bookings (patient_name, patient_email, patient_phone,
@@ -2373,12 +2400,17 @@ def sync_google_calendar(days_ahead: int = 7):
                         AND (meeting_link IS NULL OR meeting_link != %s)
                     """, (event['meeting_link'], existing[0], event['meeting_link']))
             else:
-                # Try to match with existing booking by date/time
+                # Try to match with existing booking by date/time + name
+                attendees = ', '.join(event['attendees'][:3]) if event['attendees'] else ''
                 cur.execute("""
                     SELECT id FROM bookings
                     WHERE booking_date = %s AND booking_time = %s
                     AND status IN ('confirmed', 'rescheduled')
-                """, (event_date, event_time))
+                    AND (
+                        patient_name ILIKE %s
+                        OR patient_email = ANY(string_to_array(%s, ','))
+                    )
+                """, (event_date, event_time, event['summary'] or '', attendees))
                 match = cur.fetchone()
 
                 if match:
@@ -2390,24 +2422,41 @@ def sync_google_calendar(days_ahead: int = 7):
                     """, (event['google_event_id'], event['meeting_link'], match[0]))
                     booking_id = match[0]
                 else:
-                    # Create new booking from calendar event
-                    attendees = ', '.join(event['attendees'][:3]) if event['attendees'] else ''
+                    # Double-check no existing booking for this slot before creating
                     cur.execute("""
-                        INSERT INTO bookings (patient_name, patient_email, booking_date,
-                                              booking_time, meeting_link, calendar_event_id,
-                                              status, notes)
-                        VALUES (%s, %s, %s, %s, %s, %s, 'confirmed', %s)
-                        RETURNING id
-                    """, (
-                        event['summary'] or 'Calendar Event',
-                        attendees,
-                        event_date,
-                        event_time,
-                        event['meeting_link'],
-                        event['google_event_id'],
-                        f"Auto-synced from Google Calendar"
-                    ))
-                    booking_id = cur.fetchone()[0]
+                        SELECT id FROM bookings
+                        WHERE booking_date = %s AND booking_time = %s
+                        AND status IN ('confirmed', 'rescheduled')
+                    """, (event_date, event_time))
+                    slot_taken = cur.fetchone()
+                    if slot_taken:
+                        # Slot already has a booking — just link the calendar event to it
+                        cur.execute("""
+                            UPDATE bookings
+                            SET calendar_event_id = %s, meeting_link = COALESCE(%s, meeting_link)
+                            WHERE id = %s
+                        """, (event['google_event_id'], event['meeting_link'], slot_taken[0]))
+                        booking_id = slot_taken[0]
+                    else:
+                        # Create new booking from calendar event
+                        cur.execute("""
+                            INSERT INTO bookings (patient_name, patient_email, booking_date,
+                                                  booking_time, meeting_link, calendar_event_id,
+                                                  status, notes)
+                            VALUES (%s, %s, %s, %s, %s, %s, 'confirmed', %s)
+                            ON CONFLICT (patient_email, booking_date, booking_time) DO NOTHING
+                            RETURNING id
+                        """, (
+                            event['summary'] or 'Calendar Event',
+                            attendees,
+                            event_date,
+                            event_time,
+                            event['meeting_link'],
+                            event['google_event_id'],
+                            f"Auto-synced from Google Calendar"
+                        ))
+                        row = cur.fetchone()
+                        booking_id = row[0] if row else None
 
             synced.append({
                 'summary': event['summary'],

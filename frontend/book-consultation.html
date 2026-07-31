@@ -434,8 +434,13 @@
     }
 
     /* ── Submit Booking ───────────────────────────────────────── */
+    let isSubmitting = false;
+
     async function submitBooking(e) {
       e.preventDefault();
+      if (isSubmitting) return;
+      isSubmitting = true;
+
       const errEl = document.getElementById('error-msg');
       errEl.style.display = 'none';
 
@@ -490,6 +495,7 @@
         errEl.style.display = 'block';
         btn.disabled = false;
         btn.textContent = 'Confirm Booking';
+        isSubmitting = false;
       }
     }
 
