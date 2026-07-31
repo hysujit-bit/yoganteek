@@ -4,7 +4,7 @@ import { useSortableData } from '../../hooks/useSortableData';
 import { Badge } from '../common/Badge';
 import { Modal } from '../common/Modal';
 import { Toast } from '../common/Toast';
-import { Search, UserCheck, Calendar, CheckCircle2, Loader2, ArrowUp, ArrowDown, Mail, Phone } from 'lucide-react';
+import { Search, UserCheck, Calendar, CheckCircle2, Loader2, ArrowUp, ArrowDown, Mail, Phone, Info } from 'lucide-react';
 
 export const LeadsModule = ({ onNavigate }) => {
   const [leads, setLeads] = useState([]);
@@ -32,6 +32,7 @@ export const LeadsModule = ({ onNavigate }) => {
     session_time: '10:00', meeting_link: '', session_type: 'Free Consultation',
   });
   const [logSaving, setLogSaving] = useState(false);
+  const [detailLead, setDetailLead] = useState(null);
 
   const loadLeads = useCallback(async (isPoll = false) => {
     try {
@@ -266,6 +267,14 @@ export const LeadsModule = ({ onNavigate }) => {
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                        <button
+                          onClick={() => setDetailLead(lead)}
+                          className="btn btn-outline btn-sm"
+                          style={{ padding: '3px 8px', fontSize: '0.72rem', gap: '3px' }}
+                          title="View details"
+                        >
+                          <Info size={12} /> Details
+                        </button>
                         {lead.status !== 'converted' && lead.status !== 'not_interested' && (
                           <button
                             onClick={() => openLogConsultation(lead)}
@@ -357,6 +366,9 @@ export const LeadsModule = ({ onNavigate }) => {
                 </div>
 
                 <div className="booking-card-actions">
+                  <button onClick={() => setDetailLead(lead)} className="btn btn-outline btn-sm" style={{ gap: '3px' }}>
+                    <Info size={12} /> Details
+                  </button>
                   {lead.status !== 'converted' && lead.status !== 'not_interested' && (
                     <button onClick={() => openLogConsultation(lead)} className="btn btn-outline btn-sm" style={{ gap: '3px' }}>
                       <Calendar size={12} /> Log
@@ -466,6 +478,65 @@ export const LeadsModule = ({ onNavigate }) => {
           </div>
         </form>
       </Modal>
+
+      {/* Lead Detail Slide-out Panel */}
+      {detailLead && (
+        <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: 1000, display: 'flex', justifyContent: 'flex-end' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)' }} onClick={() => setDetailLead(null)} />
+          <div style={{ position: 'relative', width: '380px', maxWidth: '90vw', background: '#fff', boxShadow: '-4px 0 24px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', animation: 'slideInRight 0.25s ease-out' }}>
+            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--forest-dark)' }}>{detailLead.name}</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>{detailLead.email}</div>
+              </div>
+              <button onClick={() => setDetailLead(null)} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px 8px' }}>✕</button>
+            </div>
+            <div style={{ padding: '1.5rem', flex: 1, overflowY: 'auto' }}>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '6px' }}>Health Goal</div>
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-dark)', lineHeight: 1.5 }}>{detailLead.health_goal || '—'}</div>
+              </div>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '6px' }}>Concern</div>
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-dark)', lineHeight: 1.5 }}>{detailLead.concern || '—'}</div>
+              </div>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '6px' }}>Message</div>
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-dark)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{detailLead.message || '—'}</div>
+              </div>
+              <hr style={{ border: 'none', borderTop: '1px solid var(--border-light)', margin: '1.25rem 0' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '4px' }}>Phone</div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-dark)' }}>{detailLead.phone || '—'}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '4px' }}>Status</div>
+                  <Badge variant={detailLead.status === 'converted' ? 'green' : detailLead.status === 'new' ? 'amber' : 'default'}>{detailLead.status || 'new'}</Badge>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '4px' }}>Source</div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-dark)' }}>{detailLead.source || 'Website'}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '4px' }}>Created</div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-dark)' }}>{detailLead.created_at ? new Date(detailLead.created_at).toLocaleDateString() : '—'}</div>
+                </div>
+              </div>
+              {detailLead.notes && (
+                <div style={{ marginTop: '1.25rem' }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '6px' }}>Notes</div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic', lineHeight: 1.5 }}>{detailLead.notes}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+      `}</style>
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>

@@ -1118,17 +1118,17 @@ def get_leads():
     try:
         conn = get_db(); cur = conn.cursor()
         cur.execute("""
-            SELECT id, name, email, phone, health_goal, concern,
+            SELECT id, name, email, phone, health_goal, concern, message,
                    status, coordinator, notes, follow_up_date, created_at
             FROM leads ORDER BY created_at DESC
         """)
         rows = cur.fetchall(); cur.close(); conn.close()
         return {"leads": [
             {"id": r[0], "name": r[1], "email": r[2], "phone": r[3],
-             "health_goal": r[4], "concern": r[5], "status": r[6] or "new",
-             "coordinator": r[7], "notes": r[8],
-             "follow_up_date": str(r[9]) if r[9] else None,
-             "created_at": str(r[10]), "source": "website"}
+             "health_goal": r[4], "concern": r[5], "message": r[6],
+             "status": r[7] or "new", "coordinator": r[8], "notes": r[9],
+             "follow_up_date": str(r[10]) if r[10] else None,
+             "created_at": str(r[11]), "source": "website"}
             for r in rows
         ], "count": len(rows)}
     except Exception as e:
