@@ -205,7 +205,8 @@ export const LeadsModule = ({ onNavigate }) => {
         </div>
       </div>
 
-      <div className="table-container">
+      {/* Desktop Leads Table */}
+      <div className="table-container desktop-only-table">
         <table className="data-table">
           <thead>
             <tr>
@@ -295,6 +296,86 @@ export const LeadsModule = ({ onNavigate }) => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Lead Cards */}
+      <div className="mobile-only-cards">
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Loading enquiries...</div>
+        ) : sortedItems.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>No matching leads found.</div>
+        ) : (
+          sortedItems.map((lead) => {
+            const leadKey = `${lead.type}-${lead.id}`;
+            const isNew = newLeadIds.has(leadKey);
+            return (
+              <div key={leadKey} className={`booking-card ${isNew ? 'row-highlight' : ''}`}>
+                <div className="booking-card-header">
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, color: 'var(--forest-dark)', fontSize: '0.95rem' }}>{lead.name}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                      {lead.created_at ? new Date(lead.created_at).toLocaleDateString() : 'Recent'}
+                    </div>
+                  </div>
+                  <Badge variant={lead.type === 'corporate' ? 'blue' : lead.type === 'contact' ? 'amber' : 'green'}>
+                    {lead.source || lead.type || 'Website'}
+                  </Badge>
+                </div>
+
+                <div className="booking-card-details">
+                  {lead.email && (
+                    <div className="booking-detail-row">
+                      <Mail size={14} color="var(--sage-primary)" />
+                      <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{lead.email}</span>
+                    </div>
+                  )}
+                  {lead.phone && (
+                    <div className="booking-detail-row">
+                      <Phone size={14} color="var(--sage-primary)" />
+                      <a href={`tel:${lead.phone}`} style={{ color: 'var(--forest-dark)', fontWeight: 600 }}>{lead.phone}</a>
+                    </div>
+                  )}
+                  {lead.notes && (
+                    <div className="booking-detail-row">
+                      <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>{lead.notes}</span>
+                    </div>
+                  )}
+                  <div className="booking-detail-row">
+                    <span style={{ fontSize: '0.78rem' }}>Status:</span>
+                    <select
+                      className="form-select" value={lead.status || 'new'}
+                      onChange={(e) => handleStatusChange(lead, e.target.value)}
+                      style={{ padding: '0.2rem 0.4rem', fontSize: '0.72rem', borderRadius: '12px', width: 'auto' }}
+                    >
+                      <option value="new">New</option>
+                      <option value="contacted">Contacted</option>
+                      <option value="consultation_booked">Consultation Booked</option>
+                      <option value="converted">Converted</option>
+                      <option value="not_interested">Not Interested</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="booking-card-actions">
+                  {lead.status !== 'converted' && lead.status !== 'not_interested' && (
+                    <button onClick={() => openLogConsultation(lead)} className="btn btn-outline btn-sm" style={{ gap: '3px' }}>
+                      <Calendar size={12} /> Log
+                    </button>
+                  )}
+                  {lead.status === 'converted' ? (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--status-green)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                      <CheckCircle2 size={13} /> Converted
+                    </span>
+                  ) : (
+                    <button onClick={() => openConvertModal(lead)} className="btn btn-primary btn-sm" style={{ gap: '3px' }}>
+                      <UserCheck size={12} /> Convert
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       <Modal

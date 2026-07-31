@@ -235,8 +235,8 @@ export const BookingsModule = () => {
         </div>
       )}
 
-      {/* Bookings Table */}
-      <div className="table-container">
+      {/* Desktop Bookings Table */}
+      <div className="table-container desktop-only-table">
         <table className="data-table">
           <thead>
             <tr>
@@ -330,6 +330,73 @@ export const BookingsModule = () => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Booking Cards */}
+      <div className="mobile-only-cards">
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Loading bookings...</div>
+        ) : sortedItems.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
+            <Calendar size={36} color="var(--sage-primary)" style={{ marginBottom: '0.5rem' }} />
+            <p>{activeTab === 'upcoming' ? 'No upcoming bookings.' : activeTab === 'past' ? 'No past bookings.' : 'No bookings yet.'}</p>
+          </div>
+        ) : (
+          sortedItems.map((b) => (
+            <div key={b.id} className="booking-card">
+              <div className="booking-card-header">
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, color: 'var(--forest-dark)', fontSize: '0.95rem' }}>{b.patient_name}</div>
+                  {b.health_goal && <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>{b.health_goal}</div>}
+                </div>
+                <Badge variant={getStatusVariant(b.status)}>{b.status}</Badge>
+              </div>
+
+              <div className="booking-card-details">
+                <div className="booking-detail-row">
+                  <Calendar size={14} color="var(--sage-primary)" />
+                  <span>{b.booking_date}</span>
+                  <Clock size={14} color="var(--sage-primary)" />
+                  <span>{formatTime12(b.booking_time)} ({b.duration_minutes || 30}m)</span>
+                </div>
+                {b.patient_phone && (
+                  <div className="booking-detail-row">
+                    <Phone size={14} color="var(--sage-primary)" />
+                    <a href={`tel:${b.patient_phone}`} style={{ color: 'var(--forest-dark)', fontWeight: 600 }}>{b.patient_phone}</a>
+                  </div>
+                )}
+                <div className="booking-detail-row">
+                  <Mail size={14} color="var(--sage-primary)" />
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{b.patient_email}</span>
+                </div>
+                {b.assigned_doctor && (
+                  <div className="booking-detail-row">
+                    <User size={14} color="var(--sage-primary)" />
+                    <span>{b.assigned_doctor}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="booking-card-actions">
+                {b.meeting_link ? (
+                  <a href={b.meeting_link} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm" style={{ flex: 1, gap: '4px' }}>
+                    <Video size={14} /> Join Meeting
+                  </a>
+                ) : (
+                  <button className="btn btn-outline btn-sm" disabled style={{ flex: 1 }}>No Link</button>
+                )}
+                <button onClick={() => openEditModal(b)} className="btn btn-outline btn-sm" style={{ gap: '3px' }}>
+                  <Edit2 size={13} /> Edit
+                </button>
+                {b.status !== 'cancelled' && (
+                  <button onClick={() => handleCancel(b)} className="btn btn-outline btn-sm" style={{ color: '#D32F2F', borderColor: '#FFCDD2' }}>
+                    <XCircle size={13} />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Edit/Reschedule Modal */}

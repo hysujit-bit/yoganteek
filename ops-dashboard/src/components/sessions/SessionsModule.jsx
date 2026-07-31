@@ -242,8 +242,8 @@ export const SessionsModule = () => {
         </div>
       )}
 
-      {/* Sessions Table */}
-      <div className="table-container">
+      {/* Desktop Sessions Table */}
+      <div className="table-container desktop-only-table">
         <table className="data-table">
           <thead>
             <tr>
@@ -328,6 +328,62 @@ export const SessionsModule = () => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Session Cards */}
+      <div className="mobile-only-cards">
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Loading sessions...</div>
+        ) : sortedItems.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
+            <CheckCircle2 size={36} color="var(--sage-primary)" style={{ marginBottom: '0.5rem' }} />
+            <p>{activeTab === 'upcoming' ? 'No upcoming sessions.' : activeTab === 'past' ? 'No past sessions.' : 'No sessions yet.'}</p>
+          </div>
+        ) : (
+          sortedItems.map((session) => (
+            <div key={session.id} className="booking-card" style={{ backgroundColor: isPast(session) && session.status === 'completed' ? '#FAFFF9' : isPast(session) && session.status === 'no-show' ? '#FFFAF9' : undefined }}>
+              <div className="booking-card-header">
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, color: 'var(--forest-dark)', fontSize: '0.95rem' }}>{session.patient_name}</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>{session.session_type || 'Consultation'}</div>
+                </div>
+                <Badge variant={getStatusVariant(session.status)}>{session.status || 'scheduled'}</Badge>
+              </div>
+
+              <div className="booking-card-details">
+                <div className="booking-detail-row">
+                  <Calendar size={14} color="var(--sage-primary)" />
+                  <span>{session.session_date}</span>
+                  <Clock size={14} color="var(--sage-primary)" />
+                  <span>{formatTime12(session.session_time)} ({session.duration_minutes || 30}m)</span>
+                </div>
+                {session.patient_email && (
+                  <div className="booking-detail-row">
+                    <Mail size={14} color="var(--sage-primary)" />
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{session.patient_email}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="booking-card-actions">
+                {session.meeting_link ? (
+                  <a href={session.meeting_link} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm" style={{ flex: 1, gap: '4px' }}>
+                    <Video size={14} /> Join Call
+                  </a>
+                ) : (
+                  <button className="btn btn-outline btn-sm" disabled style={{ flex: 1 }}>No Link</button>
+                )}
+                <button
+                  onClick={() => { setSelectedSession(session); setShareModalOpen(true); }}
+                  className="btn btn-outline btn-sm"
+                  style={{ gap: '3px' }}
+                >
+                  <Share2 size={13} /> Share
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Schedule Session Modal */}
