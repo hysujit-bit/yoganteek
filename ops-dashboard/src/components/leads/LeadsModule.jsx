@@ -199,6 +199,7 @@ export const LeadsModule = ({ onNavigate }) => {
               <option value="new">New</option>
               <option value="contacted">Contacted</option>
               <option value="consultation_booked">Consultation Booked</option>
+              <option value="no_show">No-Show</option>
               <option value="converted">Converted</option>
               <option value="not_interested">Not Interested</option>
             </select>
@@ -261,6 +262,7 @@ export const LeadsModule = ({ onNavigate }) => {
                         <option value="new">New</option>
                         <option value="contacted">Contacted</option>
                         <option value="consultation_booked">Consultation Booked</option>
+                        <option value="no_show">No-Show</option>
                         <option value="converted">Converted</option>
                         <option value="not_interested">Not Interested</option>
                       </select>
@@ -359,6 +361,7 @@ export const LeadsModule = ({ onNavigate }) => {
                       <option value="new">New</option>
                       <option value="contacted">Contacted</option>
                       <option value="consultation_booked">Consultation Booked</option>
+                      <option value="no_show">No-Show</option>
                       <option value="converted">Converted</option>
                       <option value="not_interested">Not Interested</option>
                     </select>
@@ -512,7 +515,7 @@ export const LeadsModule = ({ onNavigate }) => {
                 </div>
                 <div>
                   <div style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '4px' }}>Status</div>
-                  <Badge variant={detailLead.status === 'converted' ? 'green' : detailLead.status === 'new' ? 'amber' : 'default'}>{detailLead.status || 'new'}</Badge>
+                  <Badge variant={detailLead.status === 'converted' ? 'green' : detailLead.status === 'no_show' ? 'red' : detailLead.status === 'new' ? 'amber' : 'default'}>{detailLead.status || 'new'}</Badge>
                 </div>
                 <div>
                   <div style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '4px' }}>Source</div>

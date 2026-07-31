@@ -1974,8 +1974,10 @@ def update_booking(booking_id: int, update: BookingUpdate):
                 status_msg = f"{b[0]}'s booking ({b[1]} at {b[2]}) updated to {update.status}"
                 cur.execute("""
                     INSERT INTO notifications (type, priority, title, message, related_id, related_type)
-                    VALUES ('new_lead', 'medium', 'Booking Updated', %s, %s, 'booking')
-                """, (status_msg, booking_id))
+                    VALUES (%s, 'medium', 'Booking Updated', %s, %s, 'booking')
+                    ON CONFLICT (type, related_id, related_type) DO UPDATE
+                    SET message = EXCLUDED.message, created_at = NOW()
+                """, (f'booking_{update.status}', status_msg, booking_id))
 
         conn.commit(); cur.close(); conn.close()
         return {"success": True, "message": "Booking updated"}
@@ -2339,7 +2341,17 @@ def generate_notifications():
                              f"{lname} submitted an enquiry and hasn't been contacted yet.",
                              lid, "lead")
 
-        # 3. Follow-ups due today
+        # 3. No-show bookings — high priority, needs reschedule follow-up
+        cur.execute("""
+            SELECT id, patient_name, booking_date, booking_time FROM bookings
+            WHERE status = 'no_show'
+        """)
+        for bid, bname, bdate, btime in cur.fetchall():
+            add_notification("booking_no_show", "high", f"No-Show: {bname}",
+                             f"{bname} did not attend the session on {bdate} at {btime}. Follow up to reschedule.",
+                             bid, "booking")
+
+        # 4. Follow-ups due today
         cur.execute("""
             SELECT id, name FROM leads
             WHERE follow_up_date <= CURRENT_DATE

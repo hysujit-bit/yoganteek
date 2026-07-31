@@ -147,6 +147,7 @@ export const BookingsModule = () => {
     switch (status) {
       case 'confirmed': return 'green';
       case 'completed': return 'blue';
+      case 'no_show': return 'red';
       case 'cancelled': return 'red';
       case 'rescheduled': return 'amber';
       default: return 'green';
@@ -428,6 +429,7 @@ export const BookingsModule = () => {
               <select className="form-select" value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}>
                 <option value="confirmed">Confirmed</option>
                 <option value="completed">Completed</option>
+                <option value="no_show">No-Show</option>
                 <option value="cancelled">Cancelled</option>
                 <option value="rescheduled">Rescheduled</option>
               </select>
