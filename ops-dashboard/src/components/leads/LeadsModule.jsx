@@ -4,7 +4,7 @@ import { useSortableData } from '../../hooks/useSortableData';
 import { Badge } from '../common/Badge';
 import { Modal } from '../common/Modal';
 import { Toast } from '../common/Toast';
-import { Search, UserCheck, Calendar, CheckCircle2, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, UserCheck, Calendar, CheckCircle2, Loader2, ArrowUp, ArrowDown, Mail, Phone } from 'lucide-react';
 
 export const LeadsModule = ({ onNavigate }) => {
   const [leads, setLeads] = useState([]);
