@@ -2456,7 +2456,6 @@ def sync_google_calendar(days_ahead: int = 7):
                                                   booking_time, meeting_link, calendar_event_id,
                                                   status, notes)
                             VALUES (%s, %s, %s, %s, %s, %s, 'confirmed', %s)
-                            ON CONFLICT (patient_email, booking_date, booking_time) DO NOTHING
                             RETURNING id
                         """, (
                             event['summary'] or 'Calendar Event',
