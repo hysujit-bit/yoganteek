@@ -1049,6 +1049,18 @@ def ensure_bookings_table():
             ON bookings (patient_email, booking_date, booking_time)
             WHERE status IN ('confirmed', 'rescheduled')
         """)
+        # Backfill phone numbers from leads table for bookings missing phone
+        cur.execute("""
+            UPDATE bookings b
+            SET patient_phone = l.phone
+            FROM leads l
+            WHERE b.patient_email = l.email
+              AND (b.patient_phone IS NULL OR b.patient_phone = '')
+              AND l.phone IS NOT NULL AND l.phone != ''
+        """)
+        backfilled = cur.rowcount
+        if backfilled:
+            print(f"[DB] Backfilled phone numbers for {backfilled} booking(s)")
         conn.commit(); cur.close(); conn.close()
         print("[DB] bookings table ready")
     except Exception as e:
@@ -2457,6 +2469,19 @@ def sync_google_calendar(days_ahead: int = 7):
                         ))
                         row = cur.fetchone()
                         booking_id = row[0] if row else None
+
+                        # Backfill phone number from leads table if available
+                        if booking_id and attendees:
+                            first_email = attendees.split(',')[0].strip()
+                            cur.execute("""
+                                SELECT phone FROM leads WHERE email = %s
+                                ORDER BY created_at DESC LIMIT 1
+                            """, (first_email,))
+                            phone_row = cur.fetchone()
+                            if phone_row and phone_row[0]:
+                                cur.execute("""
+                                    UPDATE bookings SET patient_phone = %s WHERE id = %s
+                                """, (phone_row[0], booking_id))
 
             synced.append({
                 'summary': event['summary'],
