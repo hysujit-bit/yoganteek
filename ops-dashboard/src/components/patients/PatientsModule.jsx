@@ -134,7 +134,7 @@ export const PatientsModule = () => {
       </div>
 
       {/* Patient Directory Table */}
-      <div className="table-container">
+      <div className="table-container desktop-only-table">
         <table className="data-table">
           <thead>
             <tr>
@@ -199,6 +199,55 @@ export const PatientsModule = () => {
         </table>
       </div>
 
+      {/* Mobile Patient Cards */}
+      <div className="mobile-only-cards">
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Loading patient profiles...</div>
+        ) : sortedItems.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>No patient profiles found.</div>
+        ) : (
+          sortedItems.map((patient) => (
+            <div key={patient.id} className="booking-card">
+              <div className="booking-card-header">
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, color: 'var(--forest-dark)', fontSize: '0.95rem' }}>{patient.name}</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {patient.created_at ? new Date(patient.created_at).toLocaleDateString() : 'Active'}
+                  </div>
+                </div>
+                <Badge variant={patient.status === 'completed' ? 'blue' : 'green'}>
+                  {patient.status || 'active'}
+                </Badge>
+              </div>
+              <div className="booking-card-details">
+                <div className="booking-detail-row">
+                  <span style={{ fontSize: '0.82rem' }}>{patient.email}</span>
+                </div>
+                {patient.phone && (
+                  <div className="booking-detail-row">
+                    <a href={`tel:${patient.phone}`} style={{ color: 'var(--forest-dark)', fontWeight: 600, fontSize: '0.82rem' }}>{patient.phone}</a>
+                  </div>
+                )}
+                <div className="booking-detail-row">
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Health: {patient.health_goals || 'General Wellness'}</span>
+                </div>
+                <div className="booking-detail-row">
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Coordinator: {patient.coordinator || 'Dr. Jayashree'}</span>
+                </div>
+              </div>
+              <div className="booking-card-actions">
+                <button
+                  onClick={() => { setSelectedPatient(patient); setProfileModalOpen(true); }}
+                  className="btn btn-outline btn-sm"
+                >
+                  <User size={12} /> Full Profile
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       {/* Add Patient Modal */}
       <Modal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} title="Create New Patient Profile">
         <form onSubmit={handleAddPatient}>
@@ -213,7 +262,7 @@ export const PatientsModule = () => {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2col">
             <div className="form-group">
               <label className="form-label">Email</label>
               <input
@@ -274,7 +323,7 @@ export const PatientsModule = () => {
           maxWidth="700px"
         >
           <div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-light)' }}>
+            <div className="form-grid-2col" style={{ paddingBottom: '1rem', borderBottom: '1px solid var(--border-light)' }}>
               <div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Email</div>
                 <div style={{ fontWeight: 600 }}>{selectedPatient.email || 'N/A'}</div>

@@ -73,7 +73,7 @@ export const PlansModule = () => {
   return (
     <div>
       <div className="card" style={{ marginBottom: '1.5rem', padding: '1rem 1.25rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--forest-dark)' }}>Patient Service Enrollments</h3>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Track consultation packages, session completion & payments</p>
@@ -84,7 +84,7 @@ export const PlansModule = () => {
         </div>
       </div>
 
-      <div className="table-container">
+      <div className="table-container desktop-only-table">
         <table className="data-table">
           <thead>
             <tr>
@@ -143,6 +143,47 @@ export const PlansModule = () => {
         </table>
       </div>
 
+      {/* Mobile Plan Cards */}
+      <div className="mobile-only-cards">
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Loading active enrollments...</div>
+        ) : sortedItems.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>No active service plans enrolled yet.</div>
+        ) : (
+          sortedItems.map((plan) => {
+            const percent = Math.round(((plan.sessions_completed || 0) / (plan.sessions_total || 1)) * 100);
+            return (
+              <div key={plan.id} className="booking-card">
+                <div className="booking-card-header">
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, color: 'var(--forest-dark)', fontSize: '0.95rem' }}>{plan.patient_name}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                      {plan.service_name} · {plan.plan_type}
+                    </div>
+                  </div>
+                  <Badge variant={plan.payment_status === 'paid' ? 'green' : 'amber'}>
+                    {plan.payment_status || 'paid'}
+                  </Badge>
+                </div>
+                <div className="booking-card-details">
+                  <div className="booking-detail-row">
+                    <span style={{ fontSize: '0.78rem', fontWeight: 600 }}>₹{plan.amount_paid?.toLocaleString() || 0}</span>
+                  </div>
+                  <div className="booking-detail-row">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%' }}>
+                      <div style={{ flex: 1, height: '8px', backgroundColor: 'var(--sage-light)', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ width: `${percent}%`, height: '100%', backgroundColor: 'var(--sage-primary)' }} />
+                      </div>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 600, whiteSpace: 'nowrap' }}>{plan.sessions_completed}/{plan.sessions_total}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
       {/* Enroll Plan Modal */}
       <Modal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} title="Enroll Patient in Service Package">
         <form onSubmit={handleCreatePlan}>
@@ -174,7 +215,7 @@ export const PlansModule = () => {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2col">
             <div className="form-group">
               <label className="form-label">Total Sessions</label>
               <input

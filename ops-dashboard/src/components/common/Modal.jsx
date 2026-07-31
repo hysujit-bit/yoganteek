@@ -26,7 +26,12 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = '600px' }) 
               border: 'none',
               cursor: 'pointer',
               color: 'var(--text-muted)',
-              padding: '0.25rem',
+              padding: '0.5rem',
+              minWidth: '44px',
+              minHeight: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               borderRadius: '4px',
             }}
           >

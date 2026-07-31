@@ -356,7 +356,7 @@ export const LeadsModule = ({ onNavigate }) => {
                     <select
                       className="form-select" value={lead.status || 'new'}
                       onChange={(e) => handleStatusChange(lead, e.target.value)}
-                      style={{ padding: '0.2rem 0.4rem', fontSize: '0.72rem', borderRadius: '12px', width: 'auto' }}
+                      style={{ padding: '0.4rem 0.6rem', fontSize: '0.8rem', borderRadius: '12px', width: 'auto', minHeight: '36px' }}
                     >
                       <option value="new">New</option>
                       <option value="contacted">Contacted</option>
@@ -404,7 +404,7 @@ export const LeadsModule = ({ onNavigate }) => {
             <input type="text" className="form-input" value={convertForm.name}
               onChange={(e) => setConvertForm({ ...convertForm, name: e.target.value })} required />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2col">
             <div className="form-group">
               <label className="form-label">Email Address</label>
               <input type="email" className="form-input" value={convertForm.email}
@@ -445,7 +445,7 @@ export const LeadsModule = ({ onNavigate }) => {
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
             Enter the consultation details from the Calendly confirmation. This will create a session record in the dashboard.
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2col">
             <div className="form-group">
               <label className="form-label">Consultation Date</label>
               <input type="date" className="form-input" value={logForm.session_date}
@@ -508,7 +508,7 @@ export const LeadsModule = ({ onNavigate }) => {
                 <div style={{ fontSize: '0.88rem', color: 'var(--text-dark)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{detailLead.message || '—'}</div>
               </div>
               <hr style={{ border: 'none', borderTop: '1px solid var(--border-light)', margin: '1.25rem 0' }} />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="form-grid-2col">
                 <div>
                   <div style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '4px' }}>Phone</div>
                   <div style={{ fontSize: '0.85rem', color: 'var(--text-dark)' }}>{detailLead.phone || '—'}</div>

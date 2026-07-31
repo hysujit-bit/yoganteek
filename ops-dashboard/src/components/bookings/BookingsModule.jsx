@@ -413,7 +413,7 @@ export const BookingsModule = () => {
               <div style={{ fontWeight: 600 }}>{editBooking.booking_date} at {formatTime12(editBooking.booking_time)}</div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="form-grid-2col">
               <div className="form-group">
                 <label className="form-label">New Date</label>
                 <input type="date" className="form-input" value={editForm.booking_date} onChange={(e) => setEditForm({ ...editForm, booking_date: e.target.value })} />

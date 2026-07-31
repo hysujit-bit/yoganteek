@@ -232,7 +232,7 @@ export const DashboardHome = ({ onNavigate }) => {
       </div>
 
       {/* Main Grid: Today's Sessions & Upcoming Sessions */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
         {/* Today's Sessions Section */}
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
@@ -374,7 +374,7 @@ export const DashboardHome = ({ onNavigate }) => {
         <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--forest-dark)', marginBottom: '1.25rem' }}>
           Lead Pipeline Progress
         </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '1rem' }}>
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '4px' }}>
               <span style={{ fontWeight: 500 }}>New Inquiries</span>
