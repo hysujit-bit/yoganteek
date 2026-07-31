@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
 import {
@@ -15,11 +15,13 @@ import {
   CheckCircle,
   Clock,
   Sparkles,
+  MoreHorizontal,
 } from 'lucide-react';
 
 export const AppLayout = ({ activeTab, setActiveTab, children }) => {
   const { logout } = useAuth();
   const { notifications, unreadCount, drawerOpen, setDrawerOpen, markAsRead, markAllAsRead } = useNotifications();
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -38,7 +40,13 @@ export const AppLayout = ({ activeTab, setActiveTab, children }) => {
     { id: 'leads', label: 'Leads', icon: Users },
     { id: 'patients', label: 'Patients', icon: ClipboardList },
     { id: 'sessions', label: 'Sessions', icon: Calendar },
-    { id: 'notifications', label: 'Alerts', icon: Bell, badge: unreadCount },
+    { id: 'more', label: 'More', icon: MoreHorizontal },
+  ];
+
+  const moreMenuItems = [
+    { id: 'prescriptions', label: 'Prescriptions', icon: Pill },
+    { id: 'plans', label: 'Services & Plans', icon: Package },
+    { id: 'notifications', label: 'Notifications', icon: Bell, badge: unreadCount },
   ];
 
   return (
@@ -299,36 +307,97 @@ export const AppLayout = ({ activeTab, setActiveTab, children }) => {
           return (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => {
+                if (item.id === 'more') {
+                  setMoreMenuOpen(!moreMenuOpen);
+                } else {
+                  setMoreMenuOpen(false);
+                  setActiveTab(item.id);
+                }
+              }}
               className={`mobile-nav-item ${isActive ? 'active' : ''}`}
             >
               <div style={{ position: 'relative' }}>
                 <Icon />
-                {item.badge > 0 && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '-2px',
-                    right: '-6px',
-                    backgroundColor: '#D32F2F',
-                    color: '#FFF',
-                    fontSize: '0.6rem',
-                    fontWeight: 700,
-                    width: '14px',
-                    height: '14px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    {item.badge}
-                  </span>
-                )}
               </div>
               <span>{item.label}</span>
             </button>
           );
         })}
       </nav>
+
+      {/* Mobile More Menu Popup */}
+      {moreMenuOpen && (
+        <>
+          <div
+            style={{
+              position: 'fixed',
+              bottom: 'var(--bottom-nav-height)',
+              left: 0,
+              right: 0,
+              top: 0,
+              zIndex: 45,
+            }}
+            onClick={() => setMoreMenuOpen(false)}
+          />
+          <div style={{
+            position: 'fixed',
+            bottom: 'calc(var(--bottom-nav-height) + 8px)',
+            right: '8px',
+            backgroundColor: 'var(--cream-card)',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: 'var(--shadow-lg)',
+            border: '1px solid var(--border-light)',
+            zIndex: 46,
+            minWidth: '180px',
+            overflow: 'hidden',
+          }}>
+            {moreMenuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setMoreMenuOpen(false);
+                    setActiveTab(item.id);
+                  }}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.85rem 1rem',
+                    border: 'none',
+                    borderBottom: '1px solid var(--border-light)',
+                    backgroundColor: isActive ? 'var(--sage-light)' : 'transparent',
+                    color: isActive ? 'var(--forest-dark)' : 'var(--text-main)',
+                    fontWeight: isActive ? 600 : 400,
+                    fontSize: '0.88rem',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                >
+                  <Icon size={18} />
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                  {item.badge > 0 && (
+                    <span style={{
+                      backgroundColor: '#D32F2F',
+                      color: '#FFF',
+                      fontSize: '0.65rem',
+                      fontWeight: 700,
+                      padding: '2px 6px',
+                      borderRadius: '10px',
+                    }}>
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 };
