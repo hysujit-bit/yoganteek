@@ -67,6 +67,7 @@ export const api = {
   getNotifications: (unreadOnly = false) => apiClient.get(`/api/notifications?unread=${unreadOnly}`),
   markNotificationRead: (id) => apiClient.put(`/api/notifications/${id}/read`),
   markAllNotificationsRead: () => apiClient.put('/api/notifications/read-all'),
+  deleteReadNotifications: () => apiClient.delete('/api/notifications/read'),
   generateNotifications: () => apiClient.post('/api/notifications/generate'),
 
   // Calendly / Consultation Logging

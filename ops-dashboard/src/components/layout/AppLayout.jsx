@@ -253,22 +253,24 @@ export const AppLayout = ({ activeTab, setActiveTab, children }) => {
             </div>
 
             <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
-              {notifications.length === 0 ? (
+              {notifications.filter((n) => !n.is_read).length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-muted)' }}>
                   <Sparkles size={32} color="var(--sage-primary)" style={{ marginBottom: '0.5rem' }} />
-                  <p style={{ fontSize: '0.9rem' }}>All caught up! No notifications.</p>
+                  <p style={{ fontSize: '0.9rem' }}>All caught up! No unread notifications.</p>
                 </div>
               ) : (
-                notifications.map((item) => (
+                notifications.filter((n) => !n.is_read).map((item) => (
                   <div
                     key={item.id}
+                    onClick={() => markAsRead(item.id)}
                     style={{
                       padding: '0.85rem',
                       borderRadius: 'var(--radius-sm)',
-                      backgroundColor: item.is_read ? 'var(--cream-card)' : 'var(--sage-light)',
+                      backgroundColor: 'var(--sage-light)',
                       border: '1px solid var(--border-light)',
                       marginBottom: '0.65rem',
-                      position: 'relative',
+                      cursor: 'pointer',
+                      transition: 'opacity 0.2s',
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
@@ -279,18 +281,9 @@ export const AppLayout = ({ activeTab, setActiveTab, children }) => {
                         <Clock size={12} /> {item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Today'}
                       </span>
                     </div>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-main)', margin: '4px 0 8px' }}>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-main)', margin: '4px 0 0' }}>
                       {item.message}
                     </p>
-                    {!item.is_read && (
-                      <button
-                        onClick={() => markAsRead(item.id)}
-                        className="btn btn-outline btn-sm"
-                        style={{ padding: '2px 8px', fontSize: '0.72rem', gap: '3px' }}
-                      >
-                        <CheckCircle size={12} /> Mark Read
-                      </button>
-                    )}
                   </div>
                 ))
               )}

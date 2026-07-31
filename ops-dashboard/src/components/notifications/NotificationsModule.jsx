@@ -1,15 +1,33 @@
 import React, { useState } from 'react';
 import { useNotifications } from '../../context/NotificationContext';
 import { Badge } from '../common/Badge';
-import { Bell, CheckCircle2, Clock, Filter, AlertTriangle } from 'lucide-react';
+import { Bell, CheckCircle2, Clock, Filter, AlertTriangle, Trash2, Eye, EyeOff } from 'lucide-react';
+import api from '../../services/api';
 
 export const NotificationsModule = () => {
-  const { notifications, unreadCount, markAsRead, markAllAsRead, loading } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, loading, fetchNotifications } = useNotifications();
   const [filterPriority, setFilterPriority] = useState('all');
+  const [showRead, setShowRead] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const filtered = notifications
-    .filter((n) => filterPriority === 'all' || n.priority === filterPriority)
+    .filter((n) => {
+      if (!showRead && n.is_read) return false;
+      return filterPriority === 'all' || n.priority === filterPriority;
+    })
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  const handleClearRead = async () => {
+    try {
+      setClearing(true);
+      await api.deleteReadNotifications();
+      await fetchNotifications();
+    } catch (err) {
+      console.error('Failed to clear read notifications', err);
+    } finally {
+      setClearing(false);
+    }
+  };
 
   return (
     <div>
@@ -23,22 +41,38 @@ export const NotificationsModule = () => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setShowRead(!showRead)}
+              className="btn btn-outline btn-sm"
+              style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+            >
+              {showRead ? <EyeOff size={14} /> : <Eye size={14} />}
+              {showRead ? 'Hide Read' : 'Show Read'}
+            </button>
+
             <select
               className="form-select"
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              style={{ width: '160px' }}
+              style={{ width: '140px' }}
             >
               <option value="all">All Priorities</option>
-              <option value="high">🔴 High Priority</option>
+              <option value="high">🔴 High</option>
               <option value="medium">🟡 Medium</option>
-              <option value="low">🟢 Low Priority</option>
+              <option value="low">🟢 Low</option>
             </select>
 
             {unreadCount > 0 && (
               <button onClick={markAllAsRead} className="btn btn-outline btn-sm">
                 <CheckCircle2 size={14} /> Mark All Read
+              </button>
+            )}
+
+            {notifications.some((n) => n.is_read) && (
+              <button onClick={handleClearRead} className="btn btn-outline btn-sm" disabled={clearing}
+                style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--status-red)' }}>
+                <Trash2 size={14} /> {clearing ? 'Clearing...' : 'Clear Read'}
               </button>
             )}
           </div>

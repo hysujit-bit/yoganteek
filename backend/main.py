@@ -2238,6 +2238,19 @@ def cleanup_duplicate_notifications():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.delete("/api/notifications/read")
+def delete_read_notifications():
+    """Delete all read notifications to keep the list clean."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("DELETE FROM notifications WHERE is_read = TRUE")
+        deleted = cur.rowcount
+        conn.commit(); cur.close(); conn.close()
+        return {"success": True, "deleted": deleted, "message": f"Removed {deleted} read notification(s)"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/api/notifications/generate")
 def generate_notifications():
     """
@@ -2266,6 +2279,20 @@ def generate_notifications():
             conn.commit()
         except Exception as dedup_err:
             print(f"[NOTIFY] Dedup cleanup error (non-fatal): {dedup_err}")
+            conn.rollback()
+
+        # Auto-delete read notifications older than 7 days
+        try:
+            cur.execute("""
+                DELETE FROM notifications
+                WHERE is_read = TRUE AND created_at < NOW() - INTERVAL '7 days'
+            """)
+            pruned = cur.rowcount
+            if pruned:
+                print(f"[NOTIFY] Auto-pruned {pruned} old read notification(s)")
+            conn.commit()
+        except Exception as prune_err:
+            print(f"[NOTIFY] Prune error (non-fatal): {prune_err}")
             conn.rollback()
 
         def notification_exists(ntype: str, related_id: int, related_type: str) -> bool:
