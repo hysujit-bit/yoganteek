@@ -1122,8 +1122,8 @@ def get_leads():
                    status, coordinator, notes, follow_up_date, created_at, 'lead' as type
             FROM leads
             UNION ALL
-            SELECT id, name, email, phone, subject, message,
-                   status, coordinator, notes, follow_up_date, created_at, 'contact' as type
+            SELECT id, name, email, phone, subject, NULL,
+                   message, status, coordinator, notes, follow_up_date, created_at, 'contact' as type
             FROM contact_submissions
             UNION ALL
             SELECT id, contact_name, email, phone, preferred_program, industry,
