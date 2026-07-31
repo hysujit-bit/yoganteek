@@ -74,12 +74,14 @@ export const BookingsModule = () => {
 
   const isUpcoming = (b) => {
     const today = new Date().toISOString().split('T')[0];
-    return b.booking_date >= today && b.status === 'confirmed';
+    if (b.booking_date < today) return false;
+    return b.status === 'confirmed' || b.status === 'rescheduled';
   };
 
   const isPast = (b) => {
     const today = new Date().toISOString().split('T')[0];
-    return b.booking_date < today || b.status === 'completed' || b.status === 'cancelled';
+    if (b.booking_date < today) return true;
+    return b.status === 'completed' || b.status === 'cancelled' || b.status === 'no_show';
   };
 
   const filteredBookings = bookings.filter((b) => {

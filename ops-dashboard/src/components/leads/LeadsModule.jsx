@@ -168,7 +168,7 @@ export const LeadsModule = ({ onNavigate }) => {
       <div className="card" style={{ marginBottom: '1.5rem', padding: '1rem 1.25rem' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', gap: '0.4rem', background: 'var(--cream-bg)', padding: '3px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)' }}>
-            {['all', 'lead', 'contact', 'corporate'].map((tab) => (
+            {['all', 'lead', 'corporate'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveSource(tab)}
@@ -179,7 +179,7 @@ export const LeadsModule = ({ onNavigate }) => {
                   fontWeight: activeSource === tab ? 600 : 400, fontSize: '0.82rem', cursor: 'pointer', textTransform: 'capitalize',
                 }}
               >
-                {tab === 'all' ? 'All Sources' : tab === 'lead' ? 'Website Leads' : tab === 'contact' ? 'Ad Enquiries' : 'Corporate'}
+                {tab === 'all' ? 'All Sources' : tab === 'lead' ? 'Website Leads' : 'Corporate'}
               </button>
             ))}
           </div>
@@ -242,7 +242,7 @@ export const LeadsModule = ({ onNavigate }) => {
                       {lead.notes && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>{lead.notes}</div>}
                     </td>
                     <td>
-                      <Badge variant={lead.type === 'corporate' ? 'blue' : lead.type === 'contact' ? 'amber' : 'green'}>
+                      <Badge variant={lead.type === 'corporate' ? 'blue' : 'green'}>
                         {lead.source || lead.type || 'Website'}
                       </Badge>
                     </td>
@@ -328,7 +328,7 @@ export const LeadsModule = ({ onNavigate }) => {
                       {lead.created_at ? new Date(lead.created_at).toLocaleDateString() : 'Recent'}
                     </div>
                   </div>
-                  <Badge variant={lead.type === 'corporate' ? 'blue' : lead.type === 'contact' ? 'amber' : 'green'}>
+                  <Badge variant={lead.type === 'corporate' ? 'blue' : 'green'}>
                     {lead.source || lead.type || 'Website'}
                   </Badge>
                 </div>
