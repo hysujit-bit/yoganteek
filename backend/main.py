@@ -2249,16 +2249,22 @@ def generate_notifications():
         today = date.today()
         created = 0
 
-        cur.execute("""
-            DELETE FROM notifications
-            WHERE id NOT IN (
-                SELECT MIN(id) FROM notifications
-                GROUP BY type, related_id, related_type
-            )
-        """)
-        cleaned = cur.rowcount
-        if cleaned:
-            print(f"[NOTIFY] Cleaned {cleaned} duplicate notifications")
+        # Dedup cleanup — isolated so a failure here doesn't abort the whole transaction
+        try:
+            cur.execute("""
+                DELETE FROM notifications
+                WHERE id NOT IN (
+                    SELECT MIN(id) FROM notifications
+                    GROUP BY type, related_id, related_type
+                )
+            """)
+            cleaned = cur.rowcount
+            if cleaned:
+                print(f"[NOTIFY] Cleaned {cleaned} duplicate notifications")
+            conn.commit()
+        except Exception as dedup_err:
+            print(f"[NOTIFY] Dedup cleanup error (non-fatal): {dedup_err}")
+            conn.rollback()
 
         def notification_exists(ntype: str, related_id: int, related_type: str) -> bool:
             """Prevent duplicate notifications for the same item."""
@@ -2281,6 +2287,7 @@ def generate_notifications():
                     created += 1
             except Exception as e:
                 print(f"[NOTIFY] Insert error: {e}")
+                conn.rollback()
 
         # 1. Upcoming sessions (next 60 min) + auto-reminder emails
         cur.execute("""
