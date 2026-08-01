@@ -533,12 +533,13 @@ export const SessionsModule = () => {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {groupMembers.map((m) => (
-                  <div key={m.patient_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0.85rem', background: 'var(--cream-bg)', borderRadius: 'var(--radius-sm)' }}>
+                  <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0.85rem', background: 'var(--cream-bg)', borderRadius: 'var(--radius-sm)' }}>
                     <div>
-                      <span style={{ fontWeight: 600, color: 'var(--forest-dark)' }}>{m.patient_name}</span>
-                      {m.patient_email && <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>{m.patient_email}</span>}
+                      <span style={{ fontWeight: 600, color: 'var(--forest-dark)' }}>{m.name}</span>
+                      {m.email && <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>{m.email}</span>}
+                      {m.phone && <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>{m.phone}</span>}
                     </div>
-                    <button onClick={() => handleRemoveMember(m.patient_id)} className="btn btn-outline btn-sm" style={{ padding: '2px 6px', color: '#D32F2F' }}>
+                    <button onClick={() => handleRemoveMember(m.id)} className="btn btn-outline btn-sm" style={{ padding: '2px 6px', color: '#D32F2F' }}>
                       <Trash2 size={13} />
                     </button>
                   </div>
