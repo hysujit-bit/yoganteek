@@ -2693,12 +2693,20 @@ def sync_google_calendar(days_ahead: int = 7):
             existing = cur.fetchone()
 
             if existing:
-                # Update meeting link if changed
-                if event['meeting_link']:
-                    cur.execute("""
-                        UPDATE bookings SET meeting_link = %s WHERE id = %s
-                        AND (meeting_link IS NULL OR meeting_link != %s)
-                    """, (event['meeting_link'], existing[0], event['meeting_link']))
+                # Update meeting link AND date/time if changed
+                cur.execute("""
+                    UPDATE bookings
+                    SET meeting_link = COALESCE(%s, meeting_link),
+                        booking_date = %s,
+                        booking_time = %s
+                    WHERE id = %s
+                    AND (
+                        meeting_link IS NULL OR meeting_link != %s
+                        OR booking_date != %s
+                        OR booking_time != %s
+                    )
+                """, (event['meeting_link'], event_date, event_time, existing[0],
+                      event['meeting_link'], event_date, event_time))
             else:
                 # Try to match with existing booking by date/time + name
                 attendees = ', '.join(event['attendees'][:3]) if event['attendees'] else ''
@@ -2714,12 +2722,15 @@ def sync_google_calendar(days_ahead: int = 7):
                 match = cur.fetchone()
 
                 if match:
-                    # Update existing booking with Google event data
+                    # Update existing booking with Google event data (including date/time)
                     cur.execute("""
                         UPDATE bookings
-                        SET calendar_event_id = %s, meeting_link = COALESCE(%s, meeting_link)
+                        SET calendar_event_id = %s,
+                            meeting_link = COALESCE(%s, meeting_link),
+                            booking_date = %s,
+                            booking_time = %s
                         WHERE id = %s
-                    """, (event['google_event_id'], event['meeting_link'], match[0]))
+                    """, (event['google_event_id'], event['meeting_link'], event_date, event_time, match[0]))
                     booking_id = match[0]
                 else:
                     # Double-check no existing booking for this slot before creating
