@@ -128,8 +128,9 @@ class SharePatientBriefRequest(BaseModel):
 
 class SessionCreate(BaseModel):
     patient_id: Optional[int] = None
-    patient_name: str
+    patient_name: Optional[str] = None
     patient_email: Optional[str] = None
+    group_id: Optional[int] = None
     session_date: str                      # YYYY-MM-DD
     session_time: str                      # HH:MM
     duration_minutes: Optional[int] = 30
@@ -214,6 +215,28 @@ class BookingUpdate(BaseModel):
     meeting_link: Optional[str] = None
     assigned_doctor: Optional[str] = None
     notes: Optional[str] = None
+
+
+class GroupCreate(BaseModel):
+    """Create a new patient group."""
+    name: str
+    description: Optional[str] = None
+    meeting_link: Optional[str] = None
+    coordinator: Optional[str] = None
+
+
+class GroupUpdate(BaseModel):
+    """Update a group."""
+    name: Optional[str] = None
+    description: Optional[str] = None
+    meeting_link: Optional[str] = None
+    coordinator: Optional[str] = None
+    status: Optional[str] = None
+
+
+class GroupMemberAdd(BaseModel):
+    """Add patient(s) to a group."""
+    patient_ids: List[int]
 
 
 # ─────────────────────────────────────────────
@@ -1179,6 +1202,57 @@ def backfill_patient_activities():
         print(f"[DB] Error backfilling patient activities: {e}")
 
 
+def ensure_groups_table():
+    """Create groups table for patient groups (e.g., Morning Yoga, Evening Wellness)."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS groups (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                description TEXT,
+                meeting_link TEXT,
+                coordinator VARCHAR(100),
+                status VARCHAR(50) DEFAULT 'active',
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
+        conn.commit(); cur.close(); conn.close()
+        print("[DB] groups table ready")
+    except Exception as e:
+        print(f"[DB] Error ensuring groups table: {e}")
+
+
+def ensure_group_members_table():
+    """Create group_members table for patient-group relationships."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS group_members (
+                id SERIAL PRIMARY KEY,
+                group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
+                patient_id INTEGER REFERENCES patients(id) ON DELETE CASCADE,
+                joined_at TIMESTAMP DEFAULT NOW(),
+                UNIQUE(group_id, patient_id)
+            )
+        """)
+        conn.commit(); cur.close(); conn.close()
+        print("[DB] group_members table ready")
+    except Exception as e:
+        print(f"[DB] Error ensuring group_members table: {e}")
+
+
+def ensure_group_id_on_sessions():
+    """Add group_id column to sessions table if not exists."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("ALTER TABLE sessions ADD COLUMN IF NOT EXISTS group_id INTEGER REFERENCES groups(id)")
+        conn.commit(); cur.close(); conn.close()
+        print("[DB] sessions.group_id column ready")
+    except Exception as e:
+        print(f"[DB] Error adding group_id to sessions: {e}")
+
+
 # ─────────────────────────────────────────────
 # STARTUP — Ensure all tables exist
 # ─────────────────────────────────────────────
@@ -1200,6 +1274,9 @@ try:
     ensure_patient_activities_table()
     ensure_patient_notes_table()
     backfill_patient_activities()
+    ensure_groups_table()
+    ensure_group_members_table()
+    ensure_group_id_on_sessions()
 except Exception as e:
     print(f"[DB] CRITICAL: Database connection failed on startup: {e}")
 
@@ -1456,18 +1533,22 @@ def get_dashboard_stats():
         """, (today,))
         follow_ups = cur.fetchone()[0]
 
-        # Today's full session list
+        # Today's full session list (including group sessions)
         cur.execute("""
-            SELECT id, patient_name, session_date, session_time, duration_minutes,
-                   session_type, meeting_link, coordinator, status
-            FROM sessions WHERE session_date = %s AND status = 'scheduled'
-            ORDER BY session_time
+            SELECT s.id, s.patient_name, s.group_id, g.name as group_name,
+                   s.session_date, s.session_time, s.duration_minutes,
+                   s.session_type, s.meeting_link, g.meeting_link as group_meeting_link,
+                   s.coordinator, s.status
+            FROM sessions s
+            LEFT JOIN groups g ON s.group_id = g.id
+            WHERE s.session_date = %s AND s.status = 'scheduled'
+            ORDER BY s.session_time
         """, (today,))
         today_sessions = [
-            {"id": r[0], "patient_name": r[1], "session_date": str(r[2]),
-             "session_time": str(r[3]), "duration_minutes": r[4],
-             "session_type": r[5], "meeting_link": r[6],
-             "coordinator": r[7], "status": r[8]}
+            {"id": r[0], "patient_name": r[1], "group_id": r[2], "group_name": r[3],
+             "session_date": str(r[4]), "session_time": str(r[5]),
+             "duration_minutes": r[6], "session_type": r[7],
+             "meeting_link": r[8] or r[9], "coordinator": r[10], "status": r[11]}
             for r in cur.fetchall()
         ]
 
@@ -1686,6 +1767,135 @@ def delete_patient_note(patient_id: int, note_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ── Groups ────────────────────────────────────────────────
+
+@app.get("/api/groups")
+def get_groups():
+    """List all groups with member count."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("""
+            SELECT g.id, g.name, g.description, g.meeting_link, g.coordinator,
+                   g.status, g.created_at, COUNT(gm.id) as member_count
+            FROM groups g
+            LEFT JOIN group_members gm ON g.id = gm.group_id
+            GROUP BY g.id
+            ORDER BY g.name
+        """)
+        groups = [
+            {"id": r[0], "name": r[1], "description": r[2], "meeting_link": r[3],
+             "coordinator": r[4], "status": r[5], "created_at": str(r[6]), "member_count": r[7]}
+            for r in cur.fetchall()
+        ]
+        cur.close(); conn.close()
+        return {"groups": groups}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/groups")
+def create_group(group: GroupCreate):
+    """Create a new patient group."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO groups (name, description, meeting_link, coordinator)
+            VALUES (%s, %s, %s, %s) RETURNING id
+        """, (group.name, group.description, group.meeting_link, group.coordinator))
+        group_id = cur.fetchone()[0]
+        conn.commit(); cur.close(); conn.close()
+        return {"success": True, "group_id": group_id, "message": f"Group '{group.name}' created"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.put("/api/groups/{group_id}")
+def update_group(group_id: int, update: GroupUpdate):
+    """Update a group."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        fields, values = [], []
+        for field in ["name", "description", "meeting_link", "coordinator", "status"]:
+            val = getattr(update, field)
+            if val is not None:
+                fields.append(f"{field} = %s"); values.append(val)
+        if not fields:
+            raise HTTPException(status_code=400, detail="No fields to update")
+        values.append(group_id)
+        cur.execute(f"UPDATE groups SET {', '.join(fields)} WHERE id = %s", values)
+        conn.commit(); cur.close(); conn.close()
+        return {"success": True, "message": "Group updated"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/groups/{group_id}")
+def delete_group(group_id: int):
+    """Delete a group and its members."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("DELETE FROM groups WHERE id = %s", (group_id,))
+        conn.commit(); cur.close(); conn.close()
+        return {"success": True, "message": "Group deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/groups/{group_id}/members")
+def get_group_members(group_id: int):
+    """List patients in a group."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("""
+            SELECT p.id, p.name, p.email, p.phone, gm.joined_at
+            FROM group_members gm
+            JOIN patients p ON gm.patient_id = p.id
+            WHERE gm.group_id = %s
+            ORDER BY p.name
+        """, (group_id,))
+        members = [
+            {"id": r[0], "name": r[1], "email": r[2], "phone": r[3], "joined_at": str(r[4])}
+            for r in cur.fetchall()
+        ]
+        cur.close(); conn.close()
+        return {"members": members}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/groups/{group_id}/members")
+def add_group_members(group_id: int, data: GroupMemberAdd):
+    """Add patient(s) to a group."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        added = 0
+        for patient_id in data.patient_ids:
+            try:
+                cur.execute("""
+                    INSERT INTO group_members (group_id, patient_id)
+                    VALUES (%s, %s) ON CONFLICT DO NOTHING
+                """, (group_id, patient_id))
+                added += cur.rowcount
+            except Exception:
+                pass
+        conn.commit(); cur.close(); conn.close()
+        return {"success": True, "added": added}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/groups/{group_id}/members/{patient_id}")
+def remove_group_member(group_id: int, patient_id: int):
+    """Remove a patient from a group."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("DELETE FROM group_members WHERE group_id = %s AND patient_id = %s", (group_id, patient_id))
+        conn.commit(); cur.close(); conn.close()
+        return {"success": True, "message": "Member removed"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/api/patients/{patient_id}/share-brief")
 def share_patient_brief(patient_id: int, req: SharePatientBriefRequest):
     """Generate and email an internal patient brief to a team member."""
@@ -1744,17 +1954,25 @@ def share_patient_brief(patient_id: int, req: SharePatientBriefRequest):
 def create_session(session: SessionCreate):
     try:
         conn = get_db(); cur = conn.cursor()
+
+        # For group sessions, get group name if patient_name not provided
+        patient_name = session.patient_name
+        if session.group_id and not patient_name:
+            cur.execute("SELECT name FROM groups WHERE id = %s", (session.group_id,))
+            g = cur.fetchone()
+            patient_name = g[0] if g else None
+
         cur.execute("""
-            INSERT INTO sessions (patient_id, patient_name, patient_email, session_date,
+            INSERT INTO sessions (patient_id, patient_name, patient_email, group_id, session_date,
                                   session_time, duration_minutes, session_type,
                                   meeting_link, coordinator)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
-        """, (session.patient_id, session.patient_name, session.patient_email,
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
+        """, (session.patient_id, patient_name, session.patient_email, session.group_id,
               session.session_date, session.session_time, session.duration_minutes,
               session.session_type, session.meeting_link, session.coordinator))
         session_id = cur.fetchone()[0]
 
-        # Auto-generate timeline activity
+        # Auto-generate timeline activity for individual sessions
         if session.patient_id:
             cur.execute("""
                 INSERT INTO patient_activities (patient_id, activity_type, description, metadata, created_by)
@@ -1775,26 +1993,32 @@ def get_sessions(upcoming: bool = False, date_from: str = None, date_to: str = N
     try:
         conn = get_db(); cur = conn.cursor()
         query = """
-            SELECT id, patient_id, patient_name, patient_email, session_date, session_time,
-                   duration_minutes, session_type, meeting_link, coordinator, status, notes, created_at
-            FROM sessions
+            SELECT s.id, s.patient_id, s.patient_name, s.patient_email, s.group_id,
+                   g.name as group_name, g.meeting_link as group_meeting_link,
+                   s.session_date, s.session_time,
+                   s.duration_minutes, s.session_type, s.meeting_link, s.coordinator,
+                   s.status, s.notes, s.created_at
+            FROM sessions s
+            LEFT JOIN groups g ON s.group_id = g.id
         """
         conditions, params = [], []
         if upcoming:
-            conditions.append("session_date >= CURRENT_DATE AND status = 'scheduled'")
+            conditions.append("s.session_date >= CURRENT_DATE AND s.status = 'scheduled'")
         if date_from:
-            conditions.append("session_date >= %s"); params.append(date_from)
+            conditions.append("s.session_date >= %s"); params.append(date_from)
         if date_to:
-            conditions.append("session_date <= %s"); params.append(date_to)
+            conditions.append("s.session_date <= %s"); params.append(date_to)
         if conditions:
             query += " WHERE " + " AND ".join(conditions)
-        query += " ORDER BY session_date, session_time"
+        query += " ORDER BY s.session_date, s.session_time"
         cur.execute(query, params); rows = cur.fetchall(); cur.close(); conn.close()
         return {"sessions": [
             {"id": r[0], "patient_id": r[1], "patient_name": r[2], "patient_email": r[3],
-             "session_date": str(r[4]), "session_time": str(r[5]), "duration_minutes": r[6],
-             "session_type": r[7], "meeting_link": r[8], "coordinator": r[9],
-             "status": r[10], "notes": r[11], "created_at": str(r[12])}
+             "group_id": r[4], "group_name": r[5], "group_meeting_link": r[6],
+             "session_date": str(r[7]), "session_time": str(r[8]),
+             "duration_minutes": r[9], "session_type": r[10],
+             "meeting_link": r[11] or r[6], "coordinator": r[12],
+             "status": r[13], "notes": r[14], "created_at": str(r[15])}
             for r in rows
         ], "count": len(rows)}
     except Exception as e:

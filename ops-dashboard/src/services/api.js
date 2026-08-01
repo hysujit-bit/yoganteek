@@ -59,6 +59,15 @@ export const api = {
   updateSession: (id, data) => apiClient.put(`/api/sessions/${id}`, data),
   shareSessionDetails: (id, data) => apiClient.post(`/api/sessions/${id}/share`, data),
 
+  // Groups
+  getGroups: () => apiClient.get('/api/groups'),
+  createGroup: (data) => apiClient.post('/api/groups', data),
+  updateGroup: (id, data) => apiClient.put(`/api/groups/${id}`, data),
+  deleteGroup: (id) => apiClient.delete(`/api/groups/${id}`),
+  getGroupMembers: (groupId) => apiClient.get(`/api/groups/${groupId}/members`),
+  addGroupMembers: (groupId, data) => apiClient.post(`/api/groups/${groupId}/members`, data),
+  removeGroupMember: (groupId, patientId) => apiClient.delete(`/api/groups/${groupId}/members/${patientId}`),
+
   // Prescriptions
   getPrescriptions: () => apiClient.get('/api/prescriptions'),
   createPrescription: (data) => apiClient.post('/api/prescriptions', data),

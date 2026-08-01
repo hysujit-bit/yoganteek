@@ -133,9 +133,11 @@ export const DashboardHome = ({ onNavigate }) => {
         const timeUntil = getTimeUntil(today, nextToday.session_time);
         const urgency = getUrgencyLevel(today, nextToday.session_time);
         const label = urgency === 'critical' ? 'Starting Very Soon' : 'Upcoming Today';
+        const who = nextToday.group_name || nextToday.patient_name;
+        const typeLabel = nextToday.group_name ? 'Group session' : 'Session';
         const msg = urgency === 'critical'
-          ? `Session with ${nextToday.patient_name} starts in ${timeUntil}.`
-          : `${nextToday.patient_name} consultation in ${timeUntil} — prepare your notes.`;
+          ? `${typeLabel} with ${who} starts in ${timeUntil}.`
+          : `${who} in ${timeUntil} — prepare your notes.`;
         return { ...bannerStyles[urgency], label, message: msg };
       }
       return {
@@ -265,7 +267,7 @@ export const DashboardHome = ({ onNavigate }) => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <div style={{ fontWeight: 600, color: 'var(--forest-dark)', fontSize: '0.95rem' }}>
-                        {session.patient_name}
+                        {session.group_name ? `\u{1F465} ${session.group_name}` : session.patient_name}
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Clock size={12} /> {formatTime12(session.session_time)} - {session.session_type || 'Consultation'}
@@ -338,7 +340,7 @@ export const DashboardHome = ({ onNavigate }) => {
                 >
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, color: 'var(--forest-dark)', fontSize: '0.9rem' }}>
-                      {session.patient_name}
+                      {session.group_name ? `\u{1F465} ${session.group_name}` : session.patient_name}
                     </div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
                       <Calendar size={12} /> {session.session_date} at {formatTime12(session.session_time)}
