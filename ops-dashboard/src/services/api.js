@@ -48,6 +48,11 @@ export const api = {
   updatePatient: (id, data) => apiClient.put(`/api/patients/${id}`, data),
   sharePatientBrief: (id, data) => apiClient.post(`/api/patients/${id}/share-brief`, data),
 
+  // Patient Activities & Notes (Timeline)
+  getPatientActivities: (patientId) => apiClient.get(`/api/patients/${patientId}/activities`),
+  addPatientNote: (patientId, data) => apiClient.post(`/api/patients/${patientId}/notes`, data),
+  deletePatientNote: (patientId, noteId) => apiClient.delete(`/api/patients/${patientId}/notes/${noteId}`),
+
   // Sessions
   getSessions: (upcomingOnly = false) => apiClient.get(`/api/sessions?upcoming=${upcomingOnly}`),
   createSession: (data) => apiClient.post('/api/sessions', data),

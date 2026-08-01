@@ -1067,6 +1067,118 @@ def ensure_bookings_table():
         print(f"[DB] Error ensuring bookings table: {e}")
 
 
+def ensure_patient_activities_table():
+    """Create patient_activities table for timeline events."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS patient_activities (
+                id SERIAL PRIMARY KEY,
+                patient_id INTEGER REFERENCES patients(id),
+                activity_type VARCHAR(50) NOT NULL,
+                description TEXT NOT NULL,
+                metadata JSONB,
+                created_by VARCHAR(100) DEFAULT 'system',
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_patient_activities_patient ON patient_activities(patient_id, created_at DESC)")
+        conn.commit(); cur.close(); conn.close()
+        print("[DB] patient_activities table ready")
+    except Exception as e:
+        print(f"[DB] Error ensuring patient_activities table: {e}")
+
+
+def ensure_patient_notes_table():
+    """Create patient_notes table for manual team notes."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS patient_notes (
+                id SERIAL PRIMARY KEY,
+                patient_id INTEGER REFERENCES patients(id),
+                note TEXT NOT NULL,
+                added_by VARCHAR(100),
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_patient_notes_patient ON patient_notes(patient_id, created_at DESC)")
+        conn.commit(); cur.close(); conn.close()
+        print("[DB] patient_notes table ready")
+    except Exception as e:
+        print(f"[DB] Error ensuring patient_notes table: {e}")
+
+
+def backfill_patient_activities():
+    """Backfill timeline events from existing sessions, prescriptions, plans."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+
+        # Check if already backfilled
+        cur.execute("SELECT COUNT(*) FROM patient_activities")
+        if cur.fetchone()[0] > 0:
+            cur.close(); conn.close()
+            return
+
+        count = 0
+
+        # Patient creation events
+        cur.execute("SELECT id, name, created_at FROM patients")
+        for pid, name, created_at in cur.fetchall():
+            cur.execute("""
+                INSERT INTO patient_activities (patient_id, activity_type, description, metadata, created_by, created_at)
+                VALUES (%s, 'patient_created', %s, %s, 'system', %s)
+            """, (pid, f"Patient profile created for {name}", '{"source": "system"}', created_at))
+            count += 1
+
+        # Session events
+        cur.execute("SELECT id, patient_id, patient_name, session_date, session_time, status, session_type, notes FROM sessions WHERE patient_id IS NOT NULL")
+        for sid, pid, pname, sdate, stime, status, stype, notes in cur.fetchall():
+            type_map = {
+                'scheduled': 'session_scheduled',
+                'completed': 'session_completed',
+                'cancelled': 'session_cancelled',
+                'no-show': 'session_no_show',
+            }
+            act_type = type_map.get(status, 'session_scheduled')
+            desc = f"Session {status} for {pname} on {sdate}"
+            meta = json.dumps({"session_id": sid, "session_date": str(sdate), "session_time": str(stime), "session_type": stype})
+            cur.execute("""
+                INSERT INTO patient_activities (patient_id, activity_type, description, metadata, created_by, created_at)
+                VALUES (%s, %s, %s, %s, 'system', %s)
+            """, (pid, act_type, desc, meta, created_at if 'created_at' in dir() else sdate))
+            count += 1
+
+        # Prescription events
+        cur.execute("SELECT id, patient_id, patient_name, title, status, prescription_date, sent_at FROM prescriptions WHERE patient_id IS NOT NULL")
+        for rxid, pid, pname, title, status, pdate, sent_at in cur.fetchall():
+            cur.execute("""
+                INSERT INTO patient_activities (patient_id, activity_type, description, metadata, created_by, created_at)
+                VALUES (%s, 'prescription_created', %s, %s, 'system', %s)
+            """, (pid, f"Prescription '{title}' created for {pname}", json.dumps({"prescription_id": rxid, "title": title}), pdate))
+            count += 1
+            if status == 'sent' and sent_at:
+                cur.execute("""
+                    INSERT INTO patient_activities (patient_id, activity_type, description, metadata, created_by, created_at)
+                    VALUES (%s, 'prescription_sent', %s, %s, 'system', %s)
+                """, (pid, f"Prescription '{title}' sent to {pname}", json.dumps({"prescription_id": rxid, "title": title}), sent_at))
+                count += 1
+
+        # Plan events
+        cur.execute("SELECT id, patient_id, service_name, plan_type, sessions_total, sessions_completed, start_date FROM patient_plans WHERE patient_id IS NOT NULL")
+        for plid, pid, sname, ptype, stotal, sdone, sdate in cur.fetchall():
+            cur.execute("""
+                INSERT INTO patient_activities (patient_id, activity_type, description, metadata, created_by, created_at)
+                VALUES (%s, 'plan_enrolled', %s, %s, 'system', %s)
+            """, (pid, f"Enrolled in '{sname}' ({ptype} plan)", json.dumps({"plan_id": plid, "service_name": sname, "sessions_total": stotal, "sessions_completed": sdone}), sdate))
+            count += 1
+
+        conn.commit(); cur.close(); conn.close()
+        print(f"[DB] Backfilled {count} patient activity events")
+    except Exception as e:
+        print(f"[DB] Error backfilling patient activities: {e}")
+
+
 # ─────────────────────────────────────────────
 # STARTUP — Ensure all tables exist
 # ─────────────────────────────────────────────
@@ -1085,6 +1197,9 @@ try:
     ensure_patient_plans_table()
     ensure_notifications_table()
     ensure_bookings_table()
+    ensure_patient_activities_table()
+    ensure_patient_notes_table()
+    backfill_patient_activities()
 except Exception as e:
     print(f"[DB] CRITICAL: Database connection failed on startup: {e}")
 
@@ -1509,6 +1624,68 @@ def update_patient(patient_id: int, update: PatientUpdate):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/patients/{patient_id}/activities")
+def get_patient_activities(patient_id: int):
+    """Get merged timeline of activities and notes for a patient."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+
+        cur.execute("""
+            SELECT 'activity' as entry_type, id, activity_type, description, metadata, created_by, created_at
+            FROM patient_activities WHERE patient_id = %s
+            UNION ALL
+            SELECT 'note' as entry_type, id, 'note' as activity_type, note, NULL, added_by, created_at
+            FROM patient_notes WHERE patient_id = %s
+            ORDER BY created_at DESC
+        """, (patient_id, patient_id))
+
+        entries = [
+            {"type": r[0], "id": r[1], "activity_type": r[2], "description": r[3],
+             "metadata": r[4], "created_by": r[5], "created_at": str(r[6])}
+            for r in cur.fetchall()
+        ]
+
+        cur.close(); conn.close()
+        return {"activities": entries}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/patients/{patient_id}/notes")
+def add_patient_note(patient_id: int, note: dict):
+    """Add a manual note to a patient's timeline."""
+    try:
+        text = note.get("note", "").strip()
+        added_by = note.get("added_by", "Team")
+        if not text:
+            raise HTTPException(status_code=400, detail="Note text is required")
+
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO patient_notes (patient_id, note, added_by)
+            VALUES (%s, %s, %s) RETURNING id
+        """, (patient_id, text, added_by))
+        note_id = cur.fetchone()[0]
+        conn.commit(); cur.close(); conn.close()
+        return {"success": True, "note_id": note_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/patients/{patient_id}/notes/{note_id}")
+def delete_patient_note(patient_id: int, note_id: int):
+    """Delete a note from a patient's timeline."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("DELETE FROM patient_notes WHERE id = %s AND patient_id = %s", (note_id, patient_id))
+        conn.commit(); cur.close(); conn.close()
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/api/patients/{patient_id}/share-brief")
 def share_patient_brief(patient_id: int, req: SharePatientBriefRequest):
     """Generate and email an internal patient brief to a team member."""
@@ -1576,6 +1753,17 @@ def create_session(session: SessionCreate):
               session.session_date, session.session_time, session.duration_minutes,
               session.session_type, session.meeting_link, session.coordinator))
         session_id = cur.fetchone()[0]
+
+        # Auto-generate timeline activity
+        if session.patient_id:
+            cur.execute("""
+                INSERT INTO patient_activities (patient_id, activity_type, description, metadata, created_by)
+                VALUES (%s, 'session_scheduled', %s, %s, 'system')
+            """, (session.patient_id,
+                  f"Session scheduled for {session.session_date} at {session.session_time}",
+                  json.dumps({"session_id": session_id, "session_date": str(session.session_date),
+                              "session_time": str(session.session_time), "session_type": session.session_type})))
+
         conn.commit(); cur.close(); conn.close()
         return {"success": True, "session_id": session_id, "message": "Session scheduled"}
     except Exception as e:
@@ -1617,6 +1805,14 @@ def get_sessions(upcoming: bool = False, date_from: str = None, date_to: str = N
 def update_session(session_id: int, update: SessionUpdate):
     try:
         conn = get_db(); cur = conn.cursor()
+
+        # Get current session data for activity logging
+        cur.execute("SELECT patient_id, patient_name, status FROM sessions WHERE id = %s", (session_id,))
+        session_row = cur.fetchone()
+        patient_id = session_row[0] if session_row else None
+        patient_name = session_row[1] if session_row else None
+        old_status = session_row[2] if session_row else None
+
         fields, values = [], []
         for field in ["status", "notes", "meeting_link", "session_date", "session_time", "coordinator"]:
             val = getattr(update, field)
@@ -1626,6 +1822,23 @@ def update_session(session_id: int, update: SessionUpdate):
             raise HTTPException(status_code=400, detail="No fields to update")
         values.append(session_id)
         cur.execute(f"UPDATE sessions SET {', '.join(fields)} WHERE id = %s", values)
+
+        # Auto-generate activity for status changes
+        if update.status and patient_id and update.status != old_status:
+            type_map = {
+                'completed': 'session_completed',
+                'cancelled': 'session_cancelled',
+                'no-show': 'session_no_show',
+                'scheduled': 'session_scheduled',
+            }
+            act_type = type_map.get(update.status, 'status_changed')
+            cur.execute("""
+                INSERT INTO patient_activities (patient_id, activity_type, description, metadata, created_by)
+                VALUES (%s, %s, %s, %s, 'system')
+            """, (patient_id, act_type,
+                  f"Session {update.status} for {patient_name}",
+                  json.dumps({"session_id": session_id, "old_status": old_status, "new_status": update.status})))
+
         conn.commit(); cur.close(); conn.close()
         return {"success": True, "message": "Session updated"}
     except Exception as e:
@@ -2025,6 +2238,15 @@ def create_prescription(rx: PrescriptionCreate):
               json.dumps(rx.nutrition_plan) if rx.nutrition_plan else None,
               rx.lifestyle_tips, rx.additional_notes))
         rx_id = cur.fetchone()[0]
+
+        # Auto-generate timeline activity
+        if rx.patient_id:
+            cur.execute("""
+                INSERT INTO patient_activities (patient_id, activity_type, description, metadata, created_by)
+                VALUES (%s, 'prescription_created', %s, %s, %s)
+            """, (rx.patient_id, f"Prescription '{rx.title}' created",
+                  json.dumps({"prescription_id": rx_id, "title": rx.title}), rx.created_by or 'system'))
+
         conn.commit(); cur.close(); conn.close()
         return {"success": True, "prescription_id": rx_id, "message": "Prescription saved as draft"}
     except Exception as e:
@@ -2095,6 +2317,17 @@ def send_prescription(rx_id: int):
                           "Your Wellness Care Plan — Yoganteek", html)
         if sent:
             cur.execute("UPDATE prescriptions SET status = 'sent', sent_at = NOW() WHERE id = %s", (rx_id,))
+
+            # Auto-generate timeline activity
+            cur.execute("SELECT patient_id FROM prescriptions WHERE id = %s", (rx_id,))
+            rx_row = cur.fetchone()
+            if rx_row and rx_row[0]:
+                cur.execute("""
+                    INSERT INTO patient_activities (patient_id, activity_type, description, metadata, created_by)
+                    VALUES (%s, 'prescription_sent', %s, %s, %s)
+                """, (rx_row[0], f"Prescription '{title}' sent to patient",
+                      json.dumps({"prescription_id": rx_id, "title": title}), created_by or 'system'))
+
             conn.commit()
         cur.close(); conn.close()
         return {"success": sent,
