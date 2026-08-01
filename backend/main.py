@@ -223,6 +223,8 @@ class GroupCreate(BaseModel):
     description: Optional[str] = None
     meeting_link: Optional[str] = None
     coordinator: Optional[str] = None
+    session_time: Optional[str] = None
+    weekdays: Optional[str] = None
 
 
 class GroupUpdate(BaseModel):
@@ -232,6 +234,8 @@ class GroupUpdate(BaseModel):
     meeting_link: Optional[str] = None
     coordinator: Optional[str] = None
     status: Optional[str] = None
+    session_time: Optional[str] = None
+    weekdays: Optional[str] = None
 
 
 class GroupMemberAdd(BaseModel):
@@ -1213,6 +1217,8 @@ def ensure_groups_table():
                 description TEXT,
                 meeting_link TEXT,
                 coordinator VARCHAR(100),
+                session_time VARCHAR(10),
+                weekdays VARCHAR(100),
                 status VARCHAR(50) DEFAULT 'active',
                 created_at TIMESTAMP DEFAULT NOW()
             )
@@ -1240,6 +1246,18 @@ def ensure_group_members_table():
         print("[DB] group_members table ready")
     except Exception as e:
         print(f"[DB] Error ensuring group_members table: {e}")
+
+
+def ensure_group_schedule_columns():
+    """Add session_time and weekdays columns to groups table if missing."""
+    try:
+        conn = get_db(); cur = conn.cursor()
+        cur.execute("ALTER TABLE groups ADD COLUMN IF NOT EXISTS session_time VARCHAR(10)")
+        cur.execute("ALTER TABLE groups ADD COLUMN IF NOT EXISTS weekdays VARCHAR(100)")
+        conn.commit(); cur.close(); conn.close()
+        print("[DB] groups schedule columns ready")
+    except Exception as e:
+        print(f"[DB] Error adding schedule columns: {e}")
 
 
 def ensure_group_id_on_sessions():
@@ -1276,6 +1294,7 @@ try:
     backfill_patient_activities()
     ensure_groups_table()
     ensure_group_members_table()
+    ensure_group_schedule_columns()
     ensure_group_id_on_sessions()
 except Exception as e:
     print(f"[DB] CRITICAL: Database connection failed on startup: {e}")
@@ -1776,7 +1795,7 @@ def get_groups():
         conn = get_db(); cur = conn.cursor()
         cur.execute("""
             SELECT g.id, g.name, g.description, g.meeting_link, g.coordinator,
-                   g.status, g.created_at, COUNT(gm.id) as member_count
+                   g.session_time, g.weekdays, g.status, g.created_at, COUNT(gm.id) as member_count
             FROM groups g
             LEFT JOIN group_members gm ON g.id = gm.group_id
             GROUP BY g.id
@@ -1784,7 +1803,8 @@ def get_groups():
         """)
         groups = [
             {"id": r[0], "name": r[1], "description": r[2], "meeting_link": r[3],
-             "coordinator": r[4], "status": r[5], "created_at": str(r[6]), "member_count": r[7]}
+             "coordinator": r[4], "session_time": r[5], "weekdays": r[6],
+             "status": r[7], "created_at": str(r[8]), "member_count": r[9]}
             for r in cur.fetchall()
         ]
         cur.close(); conn.close()
@@ -1799,9 +1819,9 @@ def create_group(group: GroupCreate):
     try:
         conn = get_db(); cur = conn.cursor()
         cur.execute("""
-            INSERT INTO groups (name, description, meeting_link, coordinator)
-            VALUES (%s, %s, %s, %s) RETURNING id
-        """, (group.name, group.description, group.meeting_link, group.coordinator))
+            INSERT INTO groups (name, description, meeting_link, coordinator, session_time, weekdays)
+            VALUES (%s, %s, %s, %s, %s, %s) RETURNING id
+        """, (group.name, group.description, group.meeting_link, group.coordinator, group.session_time, group.weekdays))
         group_id = cur.fetchone()[0]
         conn.commit(); cur.close(); conn.close()
         return {"success": True, "group_id": group_id, "message": f"Group '{group.name}' created"}
@@ -1815,7 +1835,7 @@ def update_group(group_id: int, update: GroupUpdate):
     try:
         conn = get_db(); cur = conn.cursor()
         fields, values = [], []
-        for field in ["name", "description", "meeting_link", "coordinator", "status"]:
+        for field in ["name", "description", "meeting_link", "coordinator", "status", "session_time", "weekdays"]:
             val = getattr(update, field)
             if val is not None:
                 fields.append(f"{field} = %s"); values.append(val)

@@ -30,8 +30,10 @@ export const SessionsModule = () => {
   const [copiedLink, setCopiedLink] = useState(false);
 
   const [createGroupModalOpen, setCreateGroupModalOpen] = useState(false);
-  const [groupForm, setGroupForm] = useState({ name: '', description: '', meeting_link: '', coordinator: 'Dr. Jayashree Pattanaik' });
+  const [groupForm, setGroupForm] = useState({ name: '', description: '', meeting_link: '', coordinator: 'Dr. Jayashree Pattanaik', session_time: '10:00', weekdays: '' });
   const [groupDetailModal, setGroupDetailModal] = useState(null);
+  const [editGroupModal, setEditGroupModal] = useState(null);
+  const [editGroupForm, setEditGroupForm] = useState({ name: '', description: '', meeting_link: '', coordinator: '', session_time: '10:00', weekdays: '' });
   const [groupMembers, setGroupMembers] = useState([]);
   const [addMemberModal, setAddMemberModal] = useState(false);
   const [selectedPatients, setSelectedPatients] = useState([]);
@@ -98,7 +100,7 @@ export const SessionsModule = () => {
     try {
       await api.createGroup(groupForm);
       setCreateGroupModalOpen(false);
-      setGroupForm({ name: '', description: '', meeting_link: '', coordinator: 'Dr. Jayashree Pattanaik' });
+      setGroupForm({ name: '', description: '', meeting_link: '', coordinator: 'Dr. Jayashree Pattanaik', session_time: '10:00', weekdays: '' });
       loadData();
       setToast({ message: 'Group created!', type: 'success' });
     } catch (err) {
@@ -113,6 +115,34 @@ export const SessionsModule = () => {
       setGroupDetailModal(null);
       loadData();
       setToast({ message: 'Group deleted', type: 'success' });
+    } catch (err) {
+      setToast({ message: `Error: ${err.message}`, type: 'error' });
+    }
+  };
+
+  const openEditGroup = (group) => {
+    setEditGroupForm({
+      name: group.name || '',
+      description: group.description || '',
+      meeting_link: group.meeting_link || '',
+      coordinator: group.coordinator || '',
+      session_time: group.session_time || '10:00',
+      weekdays: group.weekdays || '',
+    });
+    setEditGroupModal(group);
+  };
+
+  const handleUpdateGroup = async (e) => {
+    e.preventDefault();
+    if (!editGroupModal) return;
+    try {
+      await api.updateGroup(editGroupModal.id, editGroupForm);
+      setEditGroupModal(null);
+      loadData();
+      if (groupDetailModal && groupDetailModal.id === editGroupModal.id) {
+        setGroupDetailModal({ ...groupDetailModal, ...editGroupForm });
+      }
+      setToast({ message: 'Group updated!', type: 'success' });
     } catch (err) {
       setToast({ message: `Error: ${err.message}`, type: 'error' });
     }
@@ -187,6 +217,30 @@ export const SessionsModule = () => {
     return `${hr % 12 || 12}:${m} ${hr >= 12 ? 'PM' : 'AM'}`;
   };
 
+  const WEEKDAYS = [
+    { key: 'sun', label: 'Sun' },
+    { key: 'mon', label: 'Mon' },
+    { key: 'tue', label: 'Tue' },
+    { key: 'wed', label: 'Wed' },
+    { key: 'thu', label: 'Thu' },
+    { key: 'fri', label: 'Fri' },
+    { key: 'sat', label: 'Sat' },
+  ];
+
+  const formatWeekdays = (weekdays) => {
+    if (!weekdays) return 'Not set';
+    const days = weekdays.split(',').map(d => d.trim().toLowerCase());
+    if (days.length === 7) return 'Every day';
+    const abbr = { sun: 'Sun', mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat' };
+    return days.map(d => abbr[d] || d).join(', ');
+  };
+
+  const toggleWeekday = (day, form, setForm) => {
+    const current = form.weekdays ? form.weekdays.split(',').map(d => d.trim()).filter(Boolean) : [];
+    const updated = current.includes(day) ? current.filter(d => d !== day) : [...current, day];
+    setForm({ ...form, weekdays: updated.join(',') });
+  };
+
   const isUpcoming = (s) => {
     const today = new Date().toISOString().split('T')[0];
     return s.session_date >= today && s.status === 'scheduled';
@@ -232,6 +286,37 @@ export const SessionsModule = () => {
     color: active ? '#FFF' : 'var(--text-main)',
     fontWeight: active ? 600 : 400, fontSize: '0.82rem', cursor: 'pointer',
   });
+
+  const WeekdayPicker = ({ value, onChange }) => {
+    const selected = value ? value.split(',').map(d => d.trim().toLowerCase()).filter(Boolean) : [];
+    return (
+      <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+        {WEEKDAYS.map(({ key, label }) => {
+          const isActive = selected.includes(key);
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => {
+                const updated = isActive ? selected.filter(d => d !== key) : [...selected, key];
+                onChange(updated.join(','));
+              }}
+              style={{
+                padding: '0.3rem 0.6rem', border: '1px solid',
+                borderColor: isActive ? 'var(--forest-dark)' : 'var(--border-light)',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: isActive ? 'var(--forest-dark)' : 'transparent',
+                color: isActive ? '#FFF' : 'var(--text-main)',
+                fontWeight: isActive ? 600 : 400, fontSize: '0.75rem', cursor: 'pointer',
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -406,9 +491,14 @@ export const SessionsModule = () => {
                     </div>
                     <Badge variant="green">{group.member_count || 0} members</Badge>
                   </div>
-                  <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    {group.session_time && (
+                      <span><Clock size={12} style={{ verticalAlign: 'middle' }} /> {formatTime12(group.session_time)}</span>
+                    )}
+                    {group.weekdays && (
+                      <span><CalendarIcon size={12} style={{ verticalAlign: 'middle' }} /> {formatWeekdays(group.weekdays)}</span>
+                    )}
                     {group.meeting_link && <span><Video size={12} style={{ verticalAlign: 'middle' }} /> Has link</span>}
-                    <span><CalendarIcon size={12} style={{ verticalAlign: 'middle' }} /> {group.coordinator || 'Unassigned'}</span>
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }} onClick={(e) => e.stopPropagation()}>
                     <button onClick={() => handleScheduleGroupSession(group)} className="btn btn-primary btn-sm" style={{ fontSize: '0.75rem', gap: '3px' }}>
@@ -497,6 +587,14 @@ export const SessionsModule = () => {
             <label className="form-label">Coordinator</label>
             <input type="text" className="form-input" value={groupForm.coordinator} onChange={(e) => setGroupForm({ ...groupForm, coordinator: e.target.value })} />
           </div>
+          <div className="form-group">
+            <label className="form-label">Session Time</label>
+            <input type="time" className="form-input" value={groupForm.session_time} onChange={(e) => setGroupForm({ ...groupForm, session_time: e.target.value })} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Weekdays</label>
+            <WeekdayPicker value={groupForm.weekdays} onChange={(val) => setGroupForm({ ...groupForm, weekdays: val })} />
+          </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
             <button type="button" onClick={() => setCreateGroupModalOpen(false)} className="btn btn-outline">Cancel</button>
             <button type="submit" className="btn btn-forest">Create Group</button>
@@ -508,17 +606,28 @@ export const SessionsModule = () => {
         <Modal isOpen={!!groupDetailModal} onClose={() => setGroupDetailModal(null)} title={`Group: ${groupDetailModal.name}`}>
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div>
+              <div style={{ flex: 1 }}>
                 {groupDetailModal.description && <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{groupDetailModal.description}</div>}
                 {groupDetailModal.meeting_link && (
                   <div style={{ fontSize: '0.82rem', color: 'var(--sage-primary)', marginTop: '4px' }}>
                     <Video size={12} style={{ verticalAlign: 'middle' }} /> {groupDetailModal.meeting_link}
                   </div>
                 )}
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  {groupDetailModal.session_time && (
+                    <span><Clock size={12} style={{ verticalAlign: 'middle' }} /> {formatTime12(groupDetailModal.session_time)}</span>
+                  )}
+                  {groupDetailModal.weekdays && (
+                    <span><CalendarIcon size={12} style={{ verticalAlign: 'middle' }} /> {formatWeekdays(groupDetailModal.weekdays)}</span>
+                  )}
+                </div>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button onClick={() => setAddMemberModal(true)} className="btn btn-primary btn-sm" style={{ gap: '3px' }}>
                   <UserPlus size={14} /> Add Members
+                </button>
+                <button onClick={() => openEditGroup(groupDetailModal)} className="btn btn-outline btn-sm" style={{ gap: '3px' }}>
+                  Edit
                 </button>
                 <button onClick={() => handleDeleteGroup(groupDetailModal.id)} className="btn btn-outline btn-sm" style={{ color: '#D32F2F', borderColor: '#FFCDD2' }}>
                   <Trash2 size={14} />
@@ -610,6 +719,41 @@ export const SessionsModule = () => {
               </button>
             </div>
           </div>
+        </Modal>
+      )}
+
+      {editGroupModal && (
+        <Modal isOpen={!!editGroupModal} onClose={() => setEditGroupModal(null)} title={`Edit Group: ${editGroupModal.name}`}>
+          <form onSubmit={handleUpdateGroup}>
+            <div className="form-group">
+              <label className="form-label">Group Name</label>
+              <input type="text" className="form-input" value={editGroupForm.name} onChange={(e) => setEditGroupForm({ ...editGroupForm, name: e.target.value })} required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Description</label>
+              <input type="text" className="form-input" value={editGroupForm.description} onChange={(e) => setEditGroupForm({ ...editGroupForm, description: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Meeting URL</label>
+              <input type="url" className="form-input" value={editGroupForm.meeting_link} onChange={(e) => setEditGroupForm({ ...editGroupForm, meeting_link: e.target.value })} placeholder="https://meet.google.com/..." />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Coordinator</label>
+              <input type="text" className="form-input" value={editGroupForm.coordinator} onChange={(e) => setEditGroupForm({ ...editGroupForm, coordinator: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Session Time</label>
+              <input type="time" className="form-input" value={editGroupForm.session_time} onChange={(e) => setEditGroupForm({ ...editGroupForm, session_time: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Weekdays</label>
+              <WeekdayPicker value={editGroupForm.weekdays} onChange={(val) => setEditGroupForm({ ...editGroupForm, weekdays: val })} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+              <button type="button" onClick={() => setEditGroupModal(null)} className="btn btn-outline">Cancel</button>
+              <button type="submit" className="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
         </Modal>
       )}
     </div>
