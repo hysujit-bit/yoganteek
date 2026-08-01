@@ -29,6 +29,9 @@ export const SessionsModule = () => {
   const [selectedSession, setSelectedSession] = useState(null);
   const [copiedLink, setCopiedLink] = useState(false);
 
+  const [editSessionModal, setEditSessionModal] = useState(null);
+  const [editSessionForm, setEditSessionForm] = useState({ session_date: '', session_time: '', duration_minutes: 45, status: 'scheduled', meeting_link: '', notes: '' });
+
   const [createGroupModalOpen, setCreateGroupModalOpen] = useState(false);
   const [groupForm, setGroupForm] = useState({ name: '', description: '', meeting_link: '', coordinator: 'Dr. Jayashree Pattanaik', session_time: '10:00', weekdays: '' });
   const [groupDetailModal, setGroupDetailModal] = useState(null);
@@ -185,13 +188,14 @@ export const SessionsModule = () => {
       await api.createSession({
         group_id: group.id,
         session_date: new Date().toISOString().split('T')[0],
-        session_time: '10:00', duration_minutes: 45,
+        session_time: group.session_time || '10:00',
+        duration_minutes: 45,
         session_type: 'Group Session',
         meeting_link: group.meeting_link || '',
         notes: `Group session for ${group.name}`,
       });
       loadData();
-      setToast({ message: `Session scheduled for ${group.name}!`, type: 'success' });
+      setToast({ message: `Session scheduled for ${group.name} at ${formatTime12(group.session_time || '10:00')}!`, type: 'success' });
     } catch (err) {
       setToast({ message: `Error: ${err.message}`, type: 'error' });
     }
@@ -208,6 +212,31 @@ export const SessionsModule = () => {
     if (!selectedSession) return;
     const text = `Hello ${selectedSession.group_name || selectedSession.patient_name}, here are your session details:\n\nDate: ${selectedSession.session_date}\nTime: ${formatTime12(selectedSession.session_time)}\nMeeting Link: ${selectedSession.meeting_link || 'Link will be sent shortly'}\n\nLooking forward to seeing you!`;
     await shareText(text, `Session Details - ${selectedSession.session_date}`);
+  };
+
+  const openEditSession = (session) => {
+    setEditSessionForm({
+      session_date: session.session_date || '',
+      session_time: session.session_time || '10:00',
+      duration_minutes: session.duration_minutes || 45,
+      status: session.status || 'scheduled',
+      meeting_link: session.meeting_link || '',
+      notes: session.notes || '',
+    });
+    setEditSessionModal(session);
+  };
+
+  const handleUpdateSession = async (e) => {
+    e.preventDefault();
+    if (!editSessionModal) return;
+    try {
+      await api.updateSession(editSessionModal.id, editSessionForm);
+      setEditSessionModal(null);
+      loadData();
+      setToast({ message: 'Session updated!', type: 'success' });
+    } catch (err) {
+      setToast({ message: `Error: ${err.message}`, type: 'error' });
+    }
   };
 
   const formatTime12 = (time24) => {
@@ -412,9 +441,14 @@ export const SessionsModule = () => {
                       </td>
                       <td><Badge variant={getStatusVariant(session.status)}>{session.status || 'scheduled'}</Badge></td>
                       <td>
-                        <button onClick={() => { setSelectedSession(session); setShareModalOpen(true); }} className="btn btn-primary btn-sm" style={{ padding: '4px 10px', fontSize: '0.75rem', gap: '4px' }}>
-                          <Share2 size={13} /> Share
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.35rem' }}>
+                          <button onClick={() => openEditSession(session)} className="btn btn-outline btn-sm" style={{ padding: '4px 8px', fontSize: '0.75rem', gap: '3px' }}>
+                            Edit
+                          </button>
+                          <button onClick={() => { setSelectedSession(session); setShareModalOpen(true); }} className="btn btn-primary btn-sm" style={{ padding: '4px 10px', fontSize: '0.75rem', gap: '4px' }}>
+                            <Share2 size={13} /> Share
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -459,6 +493,9 @@ export const SessionsModule = () => {
                     ) : (
                       <button className="btn btn-outline btn-sm" disabled style={{ flex: 1 }}>No Link</button>
                     )}
+                    <button onClick={() => openEditSession(session)} className="btn btn-outline btn-sm" style={{ gap: '3px' }}>
+                      Edit
+                    </button>
                     <button onClick={() => { setSelectedSession(session); setShareModalOpen(true); }} className="btn btn-outline btn-sm" style={{ gap: '3px' }}>
                       <Share2 size={13} /> Share
                     </button>
@@ -751,6 +788,48 @@ export const SessionsModule = () => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
               <button type="button" onClick={() => setEditGroupModal(null)} className="btn btn-outline">Cancel</button>
+              <button type="submit" className="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {editSessionModal && (
+        <Modal isOpen={!!editSessionModal} onClose={() => setEditSessionModal(null)} title={`Edit Session - ${editSessionModal.group_name || editSessionModal.patient_name}`}>
+          <form onSubmit={handleUpdateSession}>
+            <div className="form-grid-2col">
+              <div className="form-group">
+                <label className="form-label">Date</label>
+                <input type="date" className="form-input" value={editSessionForm.session_date} onChange={(e) => setEditSessionForm({ ...editSessionForm, session_date: e.target.value })} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Time</label>
+                <input type="time" className="form-input" value={editSessionForm.session_time} onChange={(e) => setEditSessionForm({ ...editSessionForm, session_time: e.target.value })} required />
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Duration (minutes)</label>
+              <input type="number" className="form-input" value={editSessionForm.duration_minutes} onChange={(e) => setEditSessionForm({ ...editSessionForm, duration_minutes: parseInt(e.target.value) || 45 })} min="15" max="180" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Status</label>
+              <select className="form-select" value={editSessionForm.status} onChange={(e) => setEditSessionForm({ ...editSessionForm, status: e.target.value })}>
+                <option value="scheduled">Scheduled</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="no-show">No Show</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Meeting URL</label>
+              <input type="url" className="form-input" value={editSessionForm.meeting_link} onChange={(e) => setEditSessionForm({ ...editSessionForm, meeting_link: e.target.value })} placeholder="https://meet.google.com/..." />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Notes</label>
+              <textarea className="form-input" rows={2} value={editSessionForm.notes} onChange={(e) => setEditSessionForm({ ...editSessionForm, notes: e.target.value })} placeholder="Session notes..." />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+              <button type="button" onClick={() => setEditSessionModal(null)} className="btn btn-outline">Cancel</button>
               <button type="submit" className="btn btn-primary">Save Changes</button>
             </div>
           </form>
